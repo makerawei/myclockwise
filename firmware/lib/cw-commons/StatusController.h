@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Locator.h>
 #include "picopixel.h"
+#include "FreeSerifBold9pt7b.h"
 
 #define ESP32_LED_BUILTIN 2
 
@@ -147,6 +148,11 @@ struct StatusController
 		printCenter("Connecting WiFi", 61);
 	}
 
+  void wifiConnectionSuccess(const char *ip) {
+    Locator::getDisplay()->fillRect(0, 24, 64, 52, 0);
+    printCenter(ip, 40, &FreeSerifBold9pt7b, false);
+  }
+  
 	void wifiConnectionFailed(const char *msg)
 	{
 		Locator::getDisplay()->fillRect(0, 24, 64, 52, 0);
@@ -161,13 +167,13 @@ struct StatusController
 		printCenter("NTP Server", 61);
 	}
 
-	void printCenter(const char *buf, int y)
+	void printCenter(const char *buf, int y, const GFXfont *f = NULL, bool center = true)
 	{
 		int16_t x1, y1;
 		uint16_t w, h;
-		Locator::getDisplay()->setFont(&Picopixel);
+		Locator::getDisplay()->setFont(f ? f : &Picopixel);
 		Locator::getDisplay()->getTextBounds(buf, 0, y, &x1, &y1, &w, &h);
-		Locator::getDisplay()->setCursor(32 - (w / 2), y);
+		Locator::getDisplay()->setCursor(center ? (32 - (w / 2)) : 0, y);
 		Locator::getDisplay()->setTextColor(0xffff);
 		Locator::getDisplay()->print(buf);
 	}

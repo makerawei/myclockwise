@@ -11,3 +11,5 @@ sdkconfig*
 .vscode
 
 dependencies.lock
+
+clockwise.si4project/

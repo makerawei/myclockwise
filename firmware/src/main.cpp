@@ -109,6 +109,18 @@ void setup()
   }
 }
 
+void onSerialControl() {
+  int n = Serial.available();
+  if(n > 0) {
+    char cmd[32] = {0};
+    size_t size = Serial.readBytes(cmd, n);
+    cmd[size - 1] = '\0';
+    if(strcmp(cmd, "jump") == 0) {
+      clockface->externalEvent(0);
+    }
+  }
+}
+
 void loop()
 {
   wifi.handleImprovWiFi();
@@ -125,4 +137,5 @@ void loop()
   }
 
   automaticBrightControl();
+  onSerialControl();
 }

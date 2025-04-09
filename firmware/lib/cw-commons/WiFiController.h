@@ -91,6 +91,8 @@ struct WiFiController
         connectionSucessfulOnce = true;
         ClockwiseWebServer::getInstance()->startWebServer();
         Serial.printf("[WiFi] Connected to %s, IP address %s\n", WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
+        StatusController::getInstance()->wifiConnectionSuccess(WiFi.localIP().toString().c_str());
+        delay(3000);
         return true;
       }
 

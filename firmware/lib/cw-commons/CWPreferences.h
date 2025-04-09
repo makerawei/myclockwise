@@ -75,18 +75,18 @@ struct ClockwiseParams
     {
         swapBlueGreen = preferences.getBool(PREF_SWAP_BLUE_GREEN, false);
         use24hFormat = preferences.getBool(PREF_USE_24H_FORMAT, true);
-        displayBright = preferences.getUInt(PREF_DISPLAY_BRIGHT, 32);
-        autoBrightMin = preferences.getUInt(PREF_DISPLAY_ABC_MIN, 0);
-        autoBrightMax = preferences.getUInt(PREF_DISPLAY_ABC_MAX, 0);
+        displayBright = preferences.getUInt(PREF_DISPLAY_BRIGHT, 128);
+        autoBrightMin = preferences.getUInt(PREF_DISPLAY_ABC_MIN, 200);
+        autoBrightMax = preferences.getUInt(PREF_DISPLAY_ABC_MAX, 4000);
         ldrPin = preferences.getUInt(PREF_LDR_PIN, 35);        
-        timeZone = preferences.getString(PREF_TIME_ZONE, "America/Sao_Paulo");
-        wifiSsid = preferences.getString(PREF_WIFI_SSID, "");
-        wifiPwd = preferences.getString(PREF_WIFI_PASSWORD, "");
-        ntpServer = preferences.getString(PREF_NTP_SERVER, "time.google.com");
+        timeZone = preferences.getString(PREF_TIME_ZONE, "Asia/Shanghai");
+        wifiSsid = preferences.getString(PREF_WIFI_SSID, "Lemon0104");
+        wifiPwd = preferences.getString(PREF_WIFI_PASSWORD, "lemon0104");
+        ntpServer = preferences.getString(PREF_NTP_SERVER, "ntp.tencent.com");
         canvasFile = preferences.getString(PREF_CANVAS_FILE, "");
         canvasServer = preferences.getString(PREF_CANVAS_SERVER, "raw.githubusercontent.com");
         manualPosix = preferences.getString(PREF_MANUAL_POSIX, "");
-        displayRotation = preferences.getUInt(PREF_DISPLAY_ROTATION, 0);
+        displayRotation = preferences.getUInt(PREF_DISPLAY_ROTATION, 3);
     }
 
 };
