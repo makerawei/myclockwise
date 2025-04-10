@@ -1,6 +1,7 @@
 #pragma once
 
 #include <WiFi.h>
+#include <Clockface.h>
 #include <CWPreferences.h>
 #include "StatusController.h"
 #include "SettingsWebPage.h"
@@ -10,6 +11,7 @@
 #endif
 
 WiFiServer server(80);
+extern Clockface *clockface;
 
 struct ClockwiseWebServer
 {
@@ -97,6 +99,11 @@ struct ClockwiseWebServer
     } else if (method == "POST" && path == "/restart") {
       client.println("HTTP/1.0 204 No Content");
       force_restart = true;
+    } else if (method == "POST" && path == "/jump") {
+      client.println("HTTP/1.0 204 No Content");
+      if(clockface) {
+        clockface->externalEvent(0);
+      }
     } else if (method == "POST" && path == "/set") {
       ClockwiseParams::getInstance()->load();
       //a baby seal has died due this ifs
