@@ -14,6 +14,8 @@
 #define MIN_BRIGHT_DISPLAY_OFF 0
 
 #define ESP32_LED_BUILTIN 2
+#define USER_BUTTON_PIN 36
+#define BUTTON_DEBOUNCE_DELAY 200
 
 MatrixPanel_I2S_DMA *dma_display = nullptr;
 
@@ -25,6 +27,10 @@ CWDateTime cwDateTime;
 bool autoBrightEnabled;
 long autoBrightMillis = 0;
 uint8_t currentBrightSlot = -1;
+
+volatile bool buttonPressed = false;
+volatile unsigned long lastDebounceTime = 0;
+
 
 void displaySetup(bool swapBlueGreen, uint8_t displayBright, uint8_t displayRotation)
 {
@@ -82,6 +88,7 @@ void setup()
 {
   Serial.begin(115200);
   pinMode(ESP32_LED_BUILTIN, OUTPUT);
+  pinMode(USER_BUTTON_PIN, INPUT);
 
   StatusController::getInstance()->blink_led(5, 100);
 
@@ -121,6 +128,24 @@ void onSerialControl() {
   }
 }
 
+void onButtonEvent() {
+  bool value = digitalRead(USER_BUTTON_PIN);
+  if(!value) {
+    if(!buttonPressed) {
+      unsigned long currentTime = millis();
+      if ((currentTime - lastDebounceTime) > BUTTON_DEBOUNCE_DELAY) {
+        buttonPressed = true;
+        lastDebounceTime = currentTime;
+        clockface->externalEvent(0);
+      }
+    }
+  } else {
+    if(buttonPressed) {
+      buttonPressed = false;
+    }
+  }
+}
+
 void loop()
 {
   wifi.handleImprovWiFi();
@@ -138,4 +163,5 @@ void loop()
 
   automaticBrightControl();
   onSerialControl();
+  onButtonEvent();
 }
