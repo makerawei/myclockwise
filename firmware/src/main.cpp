@@ -9,6 +9,7 @@
 #include <CWPreferences.h>
 #include <CWWebServer.h>
 #include <StatusController.h>
+#include <AudioHelper.h>
 
 #define MIN_BRIGHT_DISPLAY_ON 4
 #define MIN_BRIGHT_DISPLAY_OFF 0
@@ -90,6 +91,7 @@ void setup()
   pinMode(ESP32_LED_BUILTIN, OUTPUT);
   pinMode(USER_BUTTON_PIN, INPUT);
 
+  AudioHelper::getInstance()->begin();
   StatusController::getInstance()->blink_led(5, 100);
 
   ClockwiseParams::getInstance()->load();
@@ -136,6 +138,7 @@ void onButtonEvent() {
       if ((currentTime - lastDebounceTime) > BUTTON_DEBOUNCE_DELAY) {
         buttonPressed = true;
         lastDebounceTime = currentTime;
+        AudioHelper::getInstance()->jump();
         clockface->externalEvent(0);
       }
     }
