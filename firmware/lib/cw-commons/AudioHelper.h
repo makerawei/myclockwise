@@ -106,10 +106,12 @@ struct AudioHelper {
     }
   }
 
-  void jump() {
+  static void jump(void *args) {
     String url = "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/"
                  "clockwise/mario_icon.wav";
-    play(url);
+    vTaskDelay(pdMS_TO_TICKS(200));
+    AudioHelper::getInstance()->play(url);
+    vTaskDelete(NULL);
   }
 
   void play(const int16_t *buffer, const size_t size) {}

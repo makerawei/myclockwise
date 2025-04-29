@@ -130,6 +130,7 @@ void onSerialControl() {
   }
 }
 
+
 void onButtonEvent() {
   bool value = digitalRead(USER_BUTTON_PIN);
   if(!value) {
@@ -139,7 +140,6 @@ void onButtonEvent() {
         buttonPressed = true;
         lastDebounceTime = currentTime;
         clockface->externalEvent(0);
-        AudioHelper::getInstance()->jump();
       }
     }
   } else {
