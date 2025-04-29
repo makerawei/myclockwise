@@ -6,11 +6,15 @@
 #include <driver/i2s.h>
 
 #define AUDOI_I2S_PORT I2S_NUM_0
+#define WAV_HEAD_SIZE 44
 #define DMA_BUF_LEN 1024
 #define I2S_SAMPLE_RATE 24000
 #define I2S_DOUT 2
 #define I2S_BCLK 32
 #define I2S_LRC 33
+
+#define AUDIO_MARIO_EAT_ICON "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/mario_icon.wav"
+
 #define WRITE_TO_FILE(file, buffer, size) do { \
   if(file) { \
     file.write(buffer, size); \
@@ -18,21 +22,6 @@
 } while(0)
 static bool isInited = false;
 static bool spiffsInited = false;
-
-
-static uint32_t string_hash(const char *str) {
-  uint32_t hash = 5381;
-  int c;
-
-  while ((c = *str++)) {
-    hash = ((hash << 5) + hash) + c;
-  }
-  if (strlen(str) == 8) {
-    return hash & 0xFF;
-  } else  {
-    return hash & 0xFFFF;
-  }
-}
 
 
 struct AudioHelper {
@@ -87,6 +76,20 @@ struct AudioHelper {
     return ret;
   }
 
+  static uint32_t url_hash(const char *str) {
+    uint32_t hash = 5381;
+    int c;
+  
+    while ((c = *str++)) {
+      hash = ((hash << 5) + hash) + c;
+    }
+    if (strlen(str) == 8) {
+      return hash & 0xFF;
+    } else  {
+      return hash & 0xFFFF;
+    }
+  }
+
   void stop() {
     const int zeroSamples = 1024;
     int32_t zeroData = 0;
@@ -106,9 +109,9 @@ struct AudioHelper {
     }
   }
 
+  // 通过FreeRTOS任务执行jump，避免阻塞
   static void jump(void *args) {
-    String url = "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/"
-                 "clockwise/mario_icon.wav";
+    String url = AUDIO_MARIO_EAT_ICON;
     vTaskDelay(pdMS_TO_TICKS(200));
     AudioHelper::getInstance()->play(url);
     vTaskDelete(NULL);
@@ -118,7 +121,7 @@ struct AudioHelper {
 
   void play(String url) {
     char filePath[32] = {0};
-    snprintf(filePath, sizeof(filePath), "/%d.wav", string_hash(url.c_str()));
+    snprintf(filePath, sizeof(filePath), "/%d.wav", url_hash(url.c_str()));
     if(!play(filePath)) {
       download(url);
     }
@@ -138,7 +141,7 @@ struct AudioHelper {
     }
     File file;
     char filePath[32] = {0};
-    snprintf(filePath, sizeof(filePath), "/%d.wav", string_hash(url.c_str()));
+    snprintf(filePath, sizeof(filePath), "/%d.wav", url_hash(url.c_str()));
     Serial.printf("cache filePath is %s\n", filePath);
     file = SPIFFS.open(filePath, FILE_WRITE);
     if(!file) {
@@ -149,7 +152,7 @@ struct AudioHelper {
     uint8_t buffer[bufferSize] = {0};
     size_t fileSize = http.getSize();
     size_t totalBytesRead = 0;
-    size_t bytesRead = stream->readBytes(buffer, 44); // WAV文件有固定44字节的头
+    size_t bytesRead = stream->readBytes(buffer, WAV_HEAD_SIZE); // WAV文件有固定44字节的头
     WRITE_TO_FILE(file, buffer, bytesRead);
     totalBytesRead += bytesRead;
     while (totalBytesRead < fileSize) {
@@ -189,7 +192,7 @@ struct AudioHelper {
     const size_t bufferSize = DMA_BUF_LEN;
     int16_t buffer[bufferSize];
     size_t totalBytesRead = 0;
-    size_t bytesRead = file.read((uint8_t *)buffer, 44); // 固定wav头
+    size_t bytesRead = file.read((uint8_t *)buffer, WAV_HEAD_SIZE); // 固定wav头
     totalBytesRead += bytesRead;
     while (totalBytesRead < fileSize) {
       size_t bytesToRead = min(bufferSize, fileSize - totalBytesRead);
