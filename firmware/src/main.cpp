@@ -138,8 +138,8 @@ void onButtonEvent() {
       if ((currentTime - lastDebounceTime) > BUTTON_DEBOUNCE_DELAY) {
         buttonPressed = true;
         lastDebounceTime = currentTime;
-        AudioHelper::getInstance()->jump();
         clockface->externalEvent(0);
+        AudioHelper::getInstance()->jump();
       }
     }
   } else {

@@ -11,8 +11,29 @@
 #define I2S_DOUT 2
 #define I2S_BCLK 32
 #define I2S_LRC 33
-
+#define WRITE_TO_FILE(file, buffer, size) do { \
+  if(file) { \
+    file.write(buffer, size); \
+  } \
+} while(0)
 static bool isInited = false;
+static bool spiffsInited = false;
+
+
+static uint32_t string_hash(const char *str) {
+  uint32_t hash = 5381;
+  int c;
+
+  while ((c = *str++)) {
+    hash = ((hash << 5) + hash) + c;
+  }
+  if (strlen(str) == 8) {
+    return hash & 0xFF;
+  } else  {
+    return hash & 0xFFFF;
+  }
+}
+
 
 struct AudioHelper {
   static AudioHelper *getInstance() {
@@ -25,16 +46,26 @@ struct AudioHelper {
       return true;
     }
 
+    spiffsInited = SPIFFS.begin(true);
+    if(!spiffsInited){
+      Serial.println("SPIFFS init failed");
+    } else {
+      Serial.println("SPIFFS init success");
+    }
+
+    pinMode(I2S_DOUT, OUTPUT);
+    digitalWrite(I2S_DOUT, LOW);
     i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
         .sample_rate = I2S_SAMPLE_RATE,
         .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT, // Change to ONLY_LEFT
+        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
         .communication_format = (i2s_comm_format_t)I2S_COMM_FORMAT_STAND_I2S,
         .intr_alloc_flags = 0,
         .dma_buf_count = 2,
         .dma_buf_len = DMA_BUF_LEN,
-        .use_apll = false};
+        .use_apll = false
+        };
     esp_err_t i2s_install_status =
         i2s_driver_install(AUDOI_I2S_PORT, &i2s_config, 0, NULL);
 
@@ -77,13 +108,21 @@ struct AudioHelper {
 
   void jump() {
     String url = "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/"
-                 "clockwise/mario_jump2.wav";
+                 "clockwise/mario_icon.wav";
     play(url);
   }
 
   void play(const int16_t *buffer, const size_t size) {}
 
   void play(String url) {
+    char filePath[32] = {0};
+    snprintf(filePath, sizeof(filePath), "/%d.wav", string_hash(url.c_str()));
+    if(!play(filePath)) {
+      download(url);
+    }
+  }
+
+  void download(String url, bool play=false) {
     if (WiFi.status() != WL_CONNECTED) {
       return;
     }
@@ -95,18 +134,30 @@ struct AudioHelper {
       Serial.printf("invalid httpCode:%d\n", httpCode);
       return;
     }
+    File file;
+    char filePath[32] = {0};
+    snprintf(filePath, sizeof(filePath), "/%d.wav", string_hash(url.c_str()));
+    Serial.printf("cache filePath is %s\n", filePath);
+    file = SPIFFS.open(filePath, FILE_WRITE);
+    if(!file) {
+      Serial.println("open cache file failed");
+    }
     WiFiClient *stream = http.getStreamPtr();
     const size_t bufferSize = 64;
     uint8_t buffer[bufferSize] = {0};
     size_t fileSize = http.getSize();
     size_t totalBytesRead = 0;
-    size_t bytesRead = stream->readBytes(buffer, 44);
+    size_t bytesRead = stream->readBytes(buffer, 44); // WAV文件有固定44字节的头
+    WRITE_TO_FILE(file, buffer, bytesRead);
     totalBytesRead += bytesRead;
     while (totalBytesRead < fileSize) {
       size_t bytesToRead = min(bufferSize, fileSize - totalBytesRead);
       size_t bytesRead = stream->readBytes(buffer, bytesToRead);
       if (bytesRead > 0) {
-        write((const int16_t *)buffer, bytesRead);
+        if(play) { // 边下载边播放，可能因为网络原因出现卡顿
+          write((const int16_t *)buffer, bytesRead);
+        }
+        WRITE_TO_FILE(file, buffer, bytesRead);
         totalBytesRead += bytesRead;
       } else {
         break;
@@ -114,16 +165,25 @@ struct AudioHelper {
     }
     http.end();
     stop();
+    if(file) {
+      file.close();
+    }
     Serial.printf("play finished, audio file size is %d\n", fileSize);
   }
 
-  void play(const char *filePath) {
+  bool play(const char *filePath) {
+    Serial.printf("play with sniffs file: %s\n", filePath);
     File file = SPIFFS.open(filePath, FILE_READ);
     if (!file) {
-      Serial.println("File not found");
-      return;
+      Serial.println("play error: file not found");
+      return false;
     }
     size_t fileSize = file.size();
+    Serial.printf("fileSize is %d\n", fileSize);
+    if(fileSize < 44) {
+      Serial.println("invalid audio file size, need re-download");
+      return false;
+    }
     const size_t bufferSize = DMA_BUF_LEN;
     int16_t buffer[bufferSize];
     size_t totalBytesRead = 0;
@@ -141,5 +201,7 @@ struct AudioHelper {
     }
     stop();
     file.close();
+    Serial.println("play ok");
+    return true;
   }
 };
