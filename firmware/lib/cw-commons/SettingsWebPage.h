@@ -55,6 +55,14 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
       console.log(settings);
       const cards = [
         {
+          title: "Alarm Clock",
+          description: "Enter alarm times separated by spaces (e.g., 08:00 14:00).",
+          formInput: "<input id='alarm' class='w3-input w3-light-grey' name='alarm' type='text' placeholder='Alarm clock time' value='" + settings.alarmclock + "'>",
+          icon: "fa-clock-o",
+          save: "updatePreference('alarmClock', alarm.value)",
+          property: "alarmClock"
+        },
+        {
           title: "Display Bright",
           description: "0 = dark (display off) / 255 = super bright | Value: <strong><output id='rangevalue'>" + settings.displaybright + "</output></strong>",
           formInput: "<input class='w3-input w3-border' type='range' min='0' max='255' value='" + settings.displaybright + "' class='slider' id='bright' oninput='rangevalue.value=value'>",
@@ -66,7 +74,7 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
           title: "Use 24h format?",
           description: "Changes the hour format to show 20:00 instead of 8:00PM",
           formInput: "<input class='w3-check' type='checkbox' id='use24h' " + (settings.use24hformat == '1' ? "checked" : "") + "><label for='use24h'> Yep</label>",
-          icon: "fa-clock-o",
+          icon: "fa-arrow-circle-o-right",
           save: "updatePreference('use24hFormat', Number(use24h.checked))",
           property: "use24hFormat"
         },

@@ -85,6 +85,7 @@ struct ClockwiseWebServer
 
   void processRequest(WiFiClient client, String method, String path, String key, String value)
   {
+    value.trim();
     if (method == "GET" && path == "/") {
       client.println("HTTP/1.0 200 OK");
       client.println("Content-Type: text/html");
@@ -134,6 +135,9 @@ struct ClockwiseWebServer
         ClockwiseParams::getInstance()->manualPosix = value;
       } else if (key == ClockwiseParams::getInstance()->PREF_DISPLAY_ROTATION) {
         ClockwiseParams::getInstance()->displayRotation = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_ALARM_CLOCK) {
+        ClockwiseParams::getInstance()->alarmClock = value;
+        Serial.printf("set new alarm clock time: <%s>\n", ClockwiseParams::getInstance()->alarmClock.c_str());
       }
       ClockwiseParams::getInstance()->save();
       client.println("HTTP/1.0 204 No Content");
@@ -170,7 +174,7 @@ struct ClockwiseWebServer
     client.printf(HEADER_TEMPLATE_S, ClockwiseParams::getInstance()->PREF_CANVAS_SERVER, ClockwiseParams::getInstance()->canvasServer.c_str());
     client.printf(HEADER_TEMPLATE_S, ClockwiseParams::getInstance()->PREF_MANUAL_POSIX, ClockwiseParams::getInstance()->manualPosix.c_str());
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_DISPLAY_ROTATION, ClockwiseParams::getInstance()->displayRotation);
-
+    client.printf(HEADER_TEMPLATE_S, ClockwiseParams::getInstance()->PREF_ALARM_CLOCK, ClockwiseParams::getInstance()->alarmClock.c_str());
     client.printf(HEADER_TEMPLATE_S, "CW_FW_VERSION", CW_FW_VERSION);
     client.printf(HEADER_TEMPLATE_S, "CW_FW_NAME", CW_FW_NAME);
     client.printf(HEADER_TEMPLATE_S, "CLOCKFACE_NAME", CLOCKFACE_NAME);
