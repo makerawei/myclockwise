@@ -51,17 +51,24 @@ struct AudioHelper {
         .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
         .communication_format = (i2s_comm_format_t)I2S_COMM_FORMAT_STAND_I2S,
         .intr_alloc_flags = 0,
-        .dma_buf_count = 2,
+        .dma_buf_count = 4,
         .dma_buf_len = DMA_BUF_LEN,
-        .use_apll = false
-        };
+        .use_apll = false,
+
+        .tx_desc_auto_clear = true,         // 自动清除DMA描述符
+        .fixed_mclk = 0,                    // 不固定MCLK
+        .mclk_multiple = I2S_MCLK_MULTIPLE_256,  // 主时钟倍频
+        .bits_per_chan = I2S_BITS_PER_CHAN_16BIT // 每个通道的位宽
+    };    
     esp_err_t i2s_install_status =
         i2s_driver_install(AUDOI_I2S_PORT, &i2s_config, 0, NULL);
-
+    
     i2s_pin_config_t pin_config = {.bck_io_num = I2S_BCLK,
                                    .ws_io_num = I2S_LRC,
                                    .data_out_num = I2S_DOUT,
-                                   .data_in_num = I2S_PIN_NO_CHANGE};
+                                   .data_in_num = I2S_PIN_NO_CHANGE
+    };
+    pin_config.mck_io_num = I2S_PIN_NO_CHANGE;
     esp_err_t i2s_pin_status = i2s_set_pin(AUDOI_I2S_PORT, &pin_config);
     i2s_set_sample_rates(AUDOI_I2S_PORT, I2S_SAMPLE_RATE);
 

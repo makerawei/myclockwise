@@ -139,7 +139,17 @@ void onButtonEvent() {
       if ((currentTime - lastDebounceTime) > BUTTON_DEBOUNCE_DELAY) {
         buttonPressed = true;
         lastDebounceTime = currentTime;
-        clockface->externalEvent(0);
+        if(clockface->externalEvent(0)) {
+          xTaskCreatePinnedToCore(
+            &AudioHelper::jump,
+            "JumpTask", 
+            10240,
+            NULL,
+            1, 
+            NULL,
+            0 
+          );
+        }
       }
     }
   } else {
