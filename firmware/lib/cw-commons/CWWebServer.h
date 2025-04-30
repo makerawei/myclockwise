@@ -5,6 +5,7 @@
 #include <CWPreferences.h>
 #include "StatusController.h"
 #include "SettingsWebPage.h"
+#include "CWDateTime.h"
 
 #ifndef CLOCKFACE_NAME
   #define CLOCKFACE_NAME "UNKNOWN"
@@ -137,6 +138,7 @@ struct ClockwiseWebServer
         ClockwiseParams::getInstance()->displayRotation = value.toInt();
       } else if (key == ClockwiseParams::getInstance()->PREF_ALARM_CLOCK) {
         ClockwiseParams::getInstance()->alarmClock = value;
+        CWDateTime::getInstance()->setAlarm(value.c_str());
         Serial.printf("set new alarm clock time: <%s>\n", ClockwiseParams::getInstance()->alarmClock.c_str());
       }
       ClockwiseParams::getInstance()->save();

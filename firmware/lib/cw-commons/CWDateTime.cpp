@@ -1,6 +1,6 @@
 #include "CWDateTime.h"
 
-void CWDateTime::begin(const char *timeZone, bool use24format, const char *ntpServer = NTP_SERVER, const char *posixTZ = "")
+void CWDateTime::begin(const char *timeZone, bool use24format, const char *ntpServer = NTP_SERVER, const char *posixTZ = "", const char *alarmClockStr = NULL)
 {
   Serial.printf("[Time] NTP Server: %s, Timezone: %s\n", ntpServer, timeZone);
   ezt::setServer(String(ntpServer));
@@ -16,6 +16,7 @@ void CWDateTime::begin(const char *timeZone, bool use24format, const char *ntpSe
 
   this->use24hFormat = use24format;
   ezt::updateNTP();
+  this->setAlarm(alarmClockStr);
   waitForSync(10);
 }
 
@@ -84,4 +85,67 @@ bool CWDateTime::isAM()
 bool CWDateTime::is24hFormat() 
 {
   return this->use24hFormat;
+}
+bool CWDateTime::setAlarm(const char     *alarmClockStr) {
+  if(alarmClockStr == NULL) {
+    return false;
+  }
+  const char *delim = " "; // 分隔符
+  char *str = strdup(alarmClockStr);
+  bool isFirst = true;
+  this->alarmClockCount = 0;
+  while(this->alarmClockCount < MAX_ALARM_CLOCK_COUNT) {
+    char *token = strtok(isFirst ? str : NULL, delim);
+    if(token == NULL) {
+      break;
+    }
+    isFirst = false;
+    String alarmClockStr = String(token);
+    int colonPos = alarmClockStr.indexOf(':');
+    if(colonPos < 1 || colonPos >= alarmClockStr.length() - 1) {
+      continue;
+    }
+    int hour = alarmClockStr.substring(0, colonPos).toInt();
+    int munite = alarmClockStr.substring(colonPos + 1).toInt();
+    if(hour >= 0 && hour <= 23 && munite >= 0 && munite<= 59) {
+      Serial.printf("set alarm clock at %02d:%02d\n", hour, munite);
+      AlarmClock *alarmClock = &this->alarmClocks[this->alarmClockCount++];
+      alarmClock->hour = hour;
+      alarmClock->minute = munite;
+      alarmClock->alarmDuration = 60;
+      alarmClock->style = 0;
+      alarmClock->triggered = false;
+    } else {
+      continue;
+    }
+  }
+  Serial.printf("alarm clock count is %d\n", this->alarmClockCount);
+  return true;
 }
+
+void CWDateTime::triggerAlarm(const int index) {
+  if(index < 0 || index >= MAX_ALARM_CLOCK_COUNT) {
+    return;
+  }
+  AlarmClock *alarmClock = &this->alarmClocks[index];
+  switch(alarmClock->style) {
+  case 0:
+    break;
+  default:
+    break;
+  }
+}
+
+bool CWDateTime::checkAlarm() {
+  for(int i = 0; i < this->alarmClockCount; i++) {
+    int hour = getHour();
+    int mutite = getMinute();
+    if(hour == alarmClocks[i].hour && mutite == alarmClocks[i].minute && !alarmClocks[i].triggered) {
+      alarmClocks[i].triggered = true;
+      return true;
+    }
+  }
+
+  return false;
+}
+

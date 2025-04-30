@@ -23,7 +23,7 @@ MatrixPanel_I2S_DMA *dma_display = nullptr;
 Clockface *clockface;
 
 WiFiController wifi;
-CWDateTime cwDateTime;
+//CWDateTime cwDateTime;
 
 bool autoBrightEnabled;
 long autoBrightMillis = 0;
@@ -110,11 +110,12 @@ void setup()
   if (wifi.begin())
   {
     StatusController::getInstance()->ntpConnecting();
-    cwDateTime.begin(ClockwiseParams::getInstance()->timeZone.c_str(), 
+    CWDateTime::getInstance()->begin(ClockwiseParams::getInstance()->timeZone.c_str(), 
         ClockwiseParams::getInstance()->use24hFormat, 
         ClockwiseParams::getInstance()->ntpServer.c_str(),
-        ClockwiseParams::getInstance()->manualPosix.c_str());
-    clockface->setup(&cwDateTime);
+        ClockwiseParams::getInstance()->manualPosix.c_str(),
+        ClockwiseParams::getInstance()->alarmClock.c_str());
+    clockface->setup(CWDateTime::getInstance());
   }
 }
 
@@ -172,6 +173,9 @@ void loop()
   if (wifi.connectionSucessfulOnce)
   {
     clockface->update();
+    if(CWDateTime::getInstance()->checkAlarm()) {
+      Serial.println("it's alarm clock time!");
+    }
   }
 
   automaticBrightControl();
