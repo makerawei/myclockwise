@@ -85,7 +85,8 @@ bool CWDateTime::isAM()
 bool CWDateTime::is24hFormat() 
 {
   return this->use24hFormat;
-}
+}
+
 bool CWDateTime::setAlarm(const char     *alarmClockStr) {
   if(alarmClockStr == NULL) {
     return false;
@@ -123,29 +124,21 @@ bool CWDateTime::setAlarm(const char     *alarmClockStr) {
   return true;
 }
 
-void CWDateTime::triggerAlarm(const int index) {
-  if(index < 0 || index >= MAX_ALARM_CLOCK_COUNT) {
-    return;
-  }
-  AlarmClock *alarmClock = &this->alarmClocks[index];
-  switch(alarmClock->style) {
-  case 0:
-    break;
-  default:
-    break;
-  }
-}
-
-bool CWDateTime::checkAlarm() {
+int CWDateTime::checkAlarm() {
   for(int i = 0; i < this->alarmClockCount; i++) {
     int hour = getHour();
     int mutite = getMinute();
     if(hour == alarmClocks[i].hour && mutite == alarmClocks[i].minute && !alarmClocks[i].triggered) {
       alarmClocks[i].triggered = true;
-      return true;
+      return i;
     }
   }
 
-  return false;
+  return -1;
 }
 
+void CWDateTime::resetAlarm(const int index) {
+  if(index >= 0 && index < this->alarmClockCount) {
+    alarmClocks[index].triggered = false;
+  }
+}

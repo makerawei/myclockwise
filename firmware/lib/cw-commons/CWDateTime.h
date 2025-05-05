@@ -5,6 +5,7 @@
 #include <WiFi.h>
 
 #define MAX_ALARM_CLOCK_COUNT 5
+#define MAX_ALARM_DURATION_MS (120 * 1000)
 
 typedef struct {
   int hour;
@@ -46,7 +47,7 @@ public:
   bool isAM();
   bool is24hFormat();
 
-  void triggerAlarm(const int index);
-  bool setAlarm(const char     *alarmClockStr); // 格式：HH:MM 多个时间以空格间隔，最多设置5个，示例：08:00 12:00 14:30
-  bool checkAlarm();
+  bool setAlarm(const char *alarmClockStr); // 格式：HH:MM 多个时间以空格间隔，最多设置5个，示例：08:00 12:00 14:30
+  int checkAlarm();
+  void resetAlarm(const int index);
 };

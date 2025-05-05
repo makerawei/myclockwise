@@ -140,17 +140,7 @@ void onButtonEvent() {
       if ((currentTime - lastDebounceTime) > BUTTON_DEBOUNCE_DELAY) {
         buttonPressed = true;
         lastDebounceTime = currentTime;
-        if(clockface->externalEvent(0)) {
-          xTaskCreatePinnedToCore(
-            &AudioHelper::jump,
-            "JumpTask", 
-            10240,
-            NULL,
-            1, 
-            NULL,
-            0 
-          );
-        }
+        clockface->externalEvent(0);
       }
     }
   } else {
@@ -173,9 +163,6 @@ void loop()
   if (wifi.connectionSucessfulOnce)
   {
     clockface->update();
-    if(CWDateTime::getInstance()->checkAlarm()) {
-      Serial.println("it's alarm clock time!");
-    }
   }
 
   automaticBrightControl();

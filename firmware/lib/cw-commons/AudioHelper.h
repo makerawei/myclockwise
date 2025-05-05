@@ -14,6 +14,7 @@
 #define I2S_LRC 33
 
 #define AUDIO_MARIO_EAT_ICON "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/mario_icon.wav"
+#define AUDIO_MARIO_START "https://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/mario_start.wav"
 
 #define WRITE_TO_FILE(file, buffer, size) do { \
   if(file) { \
@@ -22,7 +23,7 @@
 } while(0)
 static bool isInited = false;
 static bool spiffsInited = false;
-
+static volatile bool stopFlag = false;
 
 struct AudioHelper {
   static AudioHelper *getInstance() {
@@ -42,8 +43,6 @@ struct AudioHelper {
       Serial.println("SPIFFS init success");
     }
 
-    pinMode(I2S_DOUT, OUTPUT);
-    digitalWrite(I2S_DOUT, LOW);
     i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
         .sample_rate = I2S_SAMPLE_RATE,
@@ -98,6 +97,7 @@ struct AudioHelper {
   }
 
   void stop() {
+    // i2s_zero_dma_buffer(AUDOI_I2S_PORT);  // 清空DMA缓存
     const int zeroSamples = 1024;
     int32_t zeroData = 0;
     for (int i = 0; i < zeroSamples; i++) {
@@ -108,20 +108,27 @@ struct AudioHelper {
     Serial.println("audio stopped");
   }
 
+  void setStopFlag(bool flag) {
+    stopFlag = flag;
+  }
+
+  // 立即静音
+  void emergencyMute() {
+    Serial.println("===> emergency mute");
+    i2s_stop(AUDOI_I2S_PORT);
+    // I2S0.conf.tx_fifo_reset = 1;
+    // I2S0.conf.tx_fifo_reset = 0;
+    i2s_zero_dma_buffer(AUDOI_I2S_PORT);
+    i2s_start(AUDOI_I2S_PORT);
+    vTaskDelay(pdMS_TO_TICKS(20));
+  }
+
   void write(const int16_t *buffer, const size_t size) {
     for (size_t i = 0; i < size / sizeof(int16_t); i++) {
       size_t bytesWritten = 0;
       i2s_write(AUDOI_I2S_PORT, &buffer[i], sizeof(buffer[i]), &bytesWritten,
                 portMAX_DELAY);
     }
-  }
-
-  // 通过FreeRTOS任务执行jump，避免阻塞
-  static void jump(void *args) {
-    String url = AUDIO_MARIO_EAT_ICON;
-    vTaskDelay(pdMS_TO_TICKS(200));
-    AudioHelper::getInstance()->play(url);
-    vTaskDelete(NULL);
   }
 
   void play(const int16_t *buffer, const size_t size) {}
@@ -201,7 +208,8 @@ struct AudioHelper {
     size_t totalBytesRead = 0;
     size_t bytesRead = file.read((uint8_t *)buffer, WAV_HEAD_SIZE); // 固定wav头
     totalBytesRead += bytesRead;
-    while (totalBytesRead < fileSize) {
+    stopFlag = false;
+    while (totalBytesRead < fileSize && !stopFlag) {
       size_t bytesToRead = min(bufferSize, fileSize - totalBytesRead);
       bytesRead = file.read((uint8_t *)buffer, bytesToRead);
       if (bytesRead != bytesToRead) {
