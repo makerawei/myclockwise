@@ -97,7 +97,7 @@ struct AudioHelper {
   }
 
   void stop() {
-    // i2s_zero_dma_buffer(AUDOI_I2S_PORT);  // 清空DMA缓存
+    i2s_zero_dma_buffer(AUDOI_I2S_PORT);  // 清空DMA缓存
     const int zeroSamples = 1024;
     int32_t zeroData = 0;
     for (int i = 0; i < zeroSamples; i++) {
@@ -113,6 +113,7 @@ struct AudioHelper {
   }
 
   // 立即静音
+  // 该函数可能i2s_stop或i2s_start时卡住，暂时不要使用
   void emergencyMute() {
     Serial.println("===> emergency mute");
     i2s_stop(AUDOI_I2S_PORT);

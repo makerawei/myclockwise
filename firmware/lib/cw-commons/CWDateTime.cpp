@@ -87,7 +87,7 @@ bool CWDateTime::is24hFormat()
   return this->use24hFormat;
 }
 
-bool CWDateTime::setAlarm(const char     *alarmClockStr) {
+bool CWDateTime::setAlarm(const char *alarmClockStr) {
   if(alarmClockStr == NULL) {
     return false;
   }
@@ -101,6 +101,7 @@ bool CWDateTime::setAlarm(const char     *alarmClockStr) {
       Serial.println("token is NULL");
       break;
     }
+    Serial.printf("token is %s\n", token);
     isFirst = false;
     String alarmClockStr = String(token);
     int colonPos = alarmClockStr.indexOf(':');
@@ -122,6 +123,7 @@ bool CWDateTime::setAlarm(const char     *alarmClockStr) {
     }
   }
   Serial.printf("alarm clock count is %d\n", this->alarmClockCount);
+  free(str);
   return true;
 }
 
