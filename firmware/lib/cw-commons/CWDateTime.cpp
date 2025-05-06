@@ -91,13 +91,14 @@ bool CWDateTime::setAlarm(const char     *alarmClockStr) {
   if(alarmClockStr == NULL) {
     return false;
   }
-  const char *delim = " "; // 分隔符
+  const char *delim = ";"; // 分隔符
   char *str = strdup(alarmClockStr);
   bool isFirst = true;
   this->alarmClockCount = 0;
   while(this->alarmClockCount < MAX_ALARM_CLOCK_COUNT) {
     char *token = strtok(isFirst ? str : NULL, delim);
     if(token == NULL) {
+      Serial.println("token is NULL");
       break;
     }
     isFirst = false;
