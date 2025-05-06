@@ -5,7 +5,7 @@
 #include <WiFi.h>
 
 #define MAX_ALARM_CLOCK_COUNT 5
-#define MAX_ALARM_DURATION_MS (120 * 1000)
+#define MAX_ALARM_DURATION_MS (60 * 1000)
 
 typedef struct {
   int hour;
