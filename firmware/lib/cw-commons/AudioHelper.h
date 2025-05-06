@@ -147,6 +147,7 @@ struct AudioHelper {
     }
     Serial.println("wifi connected, start to download audio...");
     HTTPClient http;
+    http.addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36");
     http.begin(url);
     int httpCode = http.GET();
     if (httpCode != HTTP_CODE_OK) {
