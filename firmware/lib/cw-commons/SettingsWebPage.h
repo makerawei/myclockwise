@@ -56,7 +56,7 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
       const cards = [
         {
           title: "Alarm Clock",
-          description: "Enter alarm times separated by spaces (e.g., 08:00 14:00).",
+          description: "Enter alarm times separated by ; (e.g., 08:30;14:00).",
           formInput: "<input id='alarm' class='w3-input w3-light-grey' name='alarm' type='text' placeholder='Alarm clock time' value='" + settings.alarmclock + "'>",
           icon: "fa-clock-o",
           save: "updatePreference('alarmClock', alarm.value)",
