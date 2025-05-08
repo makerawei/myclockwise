@@ -54,3 +54,6 @@
 	path = firmware/clockfaces/cw-cf-0x07
 	url = https://github.com/jnthas/cw-cf-0x07.git
 	shallow = true
+[submodule "components/NTPClient"]
+	path = components/NTPClient
+	url = https://github.com/arduino-libraries/NTPClient.git
