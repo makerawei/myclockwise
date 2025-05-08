@@ -57,3 +57,6 @@
 [submodule "components/NTPClient"]
 	path = components/NTPClient
 	url = https://github.com/arduino-libraries/NTPClient.git
+[submodule "components/ESP32Time"]
+	path = components/ESP32Time
+	url = https://github.com/fbiego/ESP32Time.git
