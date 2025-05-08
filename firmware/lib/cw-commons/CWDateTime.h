@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-
+#include <NTPClient.h>
 #include <ezTime.h>
 #include <WiFi.h>
 
@@ -18,6 +18,7 @@ typedef struct {
 class CWDateTime
 {
 private:
+  NTPClient *ntp;
   Timezone myTZ;
   bool use24hFormat = true;
   int alarmClockCount = 0;
@@ -30,6 +31,7 @@ public:
   }
 
   void begin(const char *timeZone, bool use24format, const char *ntpServer, const char *posixTZ, const char *alarmClockStr);
+  void updateNTP();
   String getFormattedTime();
   String getFormattedTime(const char* format);
 

@@ -1,10 +1,26 @@
 #include "CWDateTime.h"
+#include <ESP32Time.h>
+#include <WiFiUdp.h>
+
+
+static const char *TAG = "CWDateTime";
+static ESP32Time rtc(8 * 3600);
+static WiFiUDP ntpUDP;
+
 
 void CWDateTime::begin(const char *timeZone, bool use24format, const char *ntpServer = NTP_SERVER, const char *posixTZ = "", const char *alarmClockStr = NULL)
 {
   Serial.printf("[Time] NTP Server: %s, Timezone: %s\n", ntpServer, timeZone);
+  ntp = new NTPClient(ntpUDP, ntpServer, 0, 600); // 每间隔10分钟同步一次NTP服务器
+  ntp->begin();
+  if(ntp->forceUpdate()) {
+    Serial.printf("[%s]NTP update time success\n", TAG);
+    rtc.setTime(ntp->getEpochTime());
+  } else {
+    Serial.printf("[%s]NTP update time failed\n", TAG);
+  }
+#if 0
   ezt::setServer(String(ntpServer));
-
   if (strlen(posixTZ) > 1) {
     // An empty value still contains a null character so not empty is a value greater than 1.
     // Set to defined Posix TZ
@@ -16,10 +32,91 @@ void CWDateTime::begin(const char *timeZone, bool use24format, const char *ntpSe
 
   this->use24hFormat = use24format;
   ezt::updateNTP();
-  this->setAlarm(alarmClockStr);
   waitForSync(10);
+#endif
+  
+  this->setAlarm(alarmClockStr);
+
 }
 
+void CWDateTime::updateNTP() {
+  if(!ntp->update()) {
+    Serial.println("===> NTP update failed");
+  }
+}
+
+String CWDateTime::getFormattedTime()
+{
+  return myTZ.dateTime();
+}
+
+String CWDateTime::getFormattedTime(const char *format)
+{
+  return myTZ.dateTime(format);
+}
+
+char *CWDateTime::getHour(const char *format)
+{
+  static char buffer[3] = {'\0'};
+  strncpy(buffer, myTZ.dateTime((use24hFormat ? "H" : "h")).c_str(), sizeof(buffer));
+  return buffer;
+}
+
+char *CWDateTime::getMinute(const char *format)
+{
+  static char buffer[3] = {'\0'};
+  strncpy(buffer, myTZ.dateTime("i").c_str(), sizeof(buffer));
+  return buffer;
+}
+
+int CWDateTime::getHour()
+{
+  //return myTZ.dateTime((use24hFormat ? "H" : "h")).toInt();
+  return rtc.getHour(use24hFormat);
+}
+
+int CWDateTime::getMinute()
+{
+  //return myTZ.dateTime("i").toInt();
+  return rtc.getMinute();
+}
+
+int CWDateTime::getSecond()
+{
+  //return myTZ.dateTime("s").toInt();
+  return rtc.getSecond();
+}
+
+int CWDateTime::getDay() 
+{
+  //return myTZ.dateTime("d").toInt();
+  return rtc.getDay();
+}
+int CWDateTime::getMonth()
+{
+  //return myTZ.dateTime("m").toInt();
+  return rtc.getMonth();
+}
+int CWDateTime::getWeekday() 
+{
+  //return myTZ.dateTime("w").toInt()-1;
+  return rtc.getDayofWeek() + 1; // 1 - 7
+}
+
+long CWDateTime::getMilliseconds() 
+{
+  //return myTZ.ms(TIME_NOW);
+  return rtc.getMillis();
+}
+
+bool CWDateTime::isAM() 
+{
+  //return myTZ.isAM();
+  return rtc.getAmPm() == "AM";
+}
+
+
+#if 0
 String CWDateTime::getFormattedTime()
 {
   return myTZ.dateTime();
@@ -81,6 +178,8 @@ bool CWDateTime::isAM()
 {
   return myTZ.isAM();
 }
+
+#endif
 
 bool CWDateTime::is24hFormat() 
 {

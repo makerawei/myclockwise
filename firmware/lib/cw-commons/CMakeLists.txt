@@ -6,11 +6,13 @@ set (
 	 SRC_DIRS 
      ${PROJECT_DIR}/components/ezTime/src
      ${PROJECT_DIR}/components/NTPClient/
+     ${PROJECT_DIR}/components/ESP32Time/
 	)
 set (
 	 INCLUDE_DIRS
      ${PROJECT_DIR}/components/ezTime/src
      ${PROJECT_DIR}/components/NTPClient/
+     ${PROJECT_DIR}/components/ESP32Time/
     )
 
 
