@@ -15,8 +15,8 @@ void CWDateTime::begin(const char *timeZone, bool use24format, const char *ntpSe
   ntp = new NTPClient(ntpUDP, ntpServer, 0, 600); // 每间隔10分钟同步一次NTP服务器
   ntp->begin();
   if(ntp->forceUpdate()) {
-    Serial.printf("[%s]NTP update time success\n", TAG);
     rtc->setTime(ntp->getEpochTime());
+    Serial.printf("[%s]NTP update time success, current time is %s\n", TAG, getFormattedTime().c_str());
   } else {
     Serial.printf("[%s]NTP update time failed\n", TAG);
   }
@@ -41,8 +41,8 @@ void CWDateTime::begin(const char *timeZone, bool use24format, const char *ntpSe
 }
 
 void CWDateTime::updateNTP() {
-  if(!ntp->update()) {
-    Serial.println("===> NTP update failed");
+  if(ntp->update()) {
+    rtc->setTime(ntp->getEpochTime());
   }
 }
 
