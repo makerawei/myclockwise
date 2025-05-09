@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <NTPClient.h>
 #include <ezTime.h>
+#include <ESP32Time.h>
 #include <WiFi.h>
 
 #define MAX_ALARM_CLOCK_COUNT 5
@@ -18,6 +19,7 @@ typedef struct {
 class CWDateTime
 {
 private:
+  ESP32Time *rtc;
   NTPClient *ntp;
   Timezone myTZ;
   bool use24hFormat = true;
