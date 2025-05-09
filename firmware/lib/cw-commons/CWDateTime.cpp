@@ -47,25 +47,29 @@ void CWDateTime::updateNTP() {
 
 String CWDateTime::getFormattedTime()
 {
-  return myTZ.dateTime();
+  return rtc.getTime();
+  //return myTZ.dateTime();
 }
 
 String CWDateTime::getFormattedTime(const char *format)
 {
-  return myTZ.dateTime(format);
+  return rtc.getTime(format);
+  //return myTZ.dateTime(format);
 }
 
 char *CWDateTime::getHour(const char *format)
 {
   static char buffer[3] = {'\0'};
-  strncpy(buffer, myTZ.dateTime((use24hFormat ? "H" : "h")).c_str(), sizeof(buffer));
+  snprintf(buffer, sizeof(buffer), "%02d", rtc.getHour(use24hFormat));
+  //strncpy(buffer, myTZ.dateTime((use24hFormat ? "H" : "h")).c_str(), sizeof(buffer));
   return buffer;
 }
 
 char *CWDateTime::getMinute(const char *format)
 {
   static char buffer[3] = {'\0'};
-  strncpy(buffer, myTZ.dateTime("i").c_str(), sizeof(buffer));
+  snprintf(buffer, sizeof(buffer), format, rtc.getMinute());
+  //strncpy(buffer, myTZ.dateTime("i").c_str(), sizeof(buffer));
   return buffer;
 }
 
