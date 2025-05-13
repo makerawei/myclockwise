@@ -1,10 +1,37 @@
 #pragma once
 
+#include <Adafruit_GFX.h>
+#include "AudioHelper.h"
 #include "CWDateTime.h"
 
-class IClockface {
+typedef void (*AlarmTickCallbackType)(void);
 
-    //virtual void setup(DateTime *dateTime) = 0;
+class IClockface {
+protected:
+    Adafruit_GFX* _display;
+    CWDateTime* _dateTime;
+    int _alarmIndex; // 当前触发闹钟的索引
+    TaskHandle_t _xAlarmTaskHandle;    
+    TimerHandle_t _alarmTimer;
+    TickType_t _xLastAlarmTime;
+    static AlarmTickCallbackType _tickFunc;
+    static SemaphoreHandle_t _semaphore;
+    
+public:
+    IClockface(Adafruit_GFX* display);
+    virtual bool externalEvent(int type) {
+      return true;
+    }
+    
+    void updateTime();
+    bool alarmStarts();
+    bool isAlarmTaskRunning();
+    void tryToCancelAlarmTask();
+
+    static void alarmSetTickFunc(AlarmTickCallbackType func);
+    static void alarmTask(void *args);
+    static void alarmTimerCallback(TimerHandle_t xTimer);
+    
     virtual void setup(CWDateTime *dateTime) = 0;
     virtual void update() = 0;
 

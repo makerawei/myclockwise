@@ -4,13 +4,21 @@ cmake_minimum_required(VERSION 3.5)
 # This can be removed if https://github.com/ropg/ezTime/pull/157 is merged in.
 set (
 	 SRC_DIRS 
-     ${PROJECT_DIR}/components/ezTime/src
+	 ${PROJECT_DIR}/firmware/lib/cw-commons/
+	 ${PROJECT_DIR}/firmware/lib/cw-gfx-engine/
+	 ${PROJECT_DIR}/components/Adafruit-GFX-Library/
+	 ${PROJECT_DIR}/components/Adafruit_BusIO/
+     ${PROJECT_DIR}/components/ezTime/src/
      ${PROJECT_DIR}/components/NTPClient/
      ${PROJECT_DIR}/components/ESP32Time/
 	)
 set (
 	 INCLUDE_DIRS
-     ${PROJECT_DIR}/components/ezTime/src
+	 ${PROJECT_DIR}/firmware/lib/cw-commons/
+	 ${PROJECT_DIR}/firmware/lib/cw-gfx-engine/
+	 ${PROJECT_DIR}/components/Adafruit-GFX-Library/
+	 ${PROJECT_DIR}/components/Adafruit_BusIO/
+     ${PROJECT_DIR}/components/ezTime/src/
      ${PROJECT_DIR}/components/NTPClient/
      ${PROJECT_DIR}/components/ESP32Time/
     )
