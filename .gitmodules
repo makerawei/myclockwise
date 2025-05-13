@@ -66,3 +66,6 @@
 [submodule "components/PNGdec"]
 	path = components/PNGdec
 	url = https://github.com/makerawei/PNGdec.git
+[submodule "components/esp-dsp"]
+	path = components/esp-dsp
+	url = https://github.com/espressif/esp-dsp.git
