@@ -63,3 +63,6 @@
 [submodule "components/ArduinoJson"]
 	path = components/ArduinoJson
 	url = https://github.com/bblanchon/ArduinoJson
+[submodule "components/PNGdec"]
+	path = components/PNGdec
+	url = https://github.com/makerawei/PNGdec.git
