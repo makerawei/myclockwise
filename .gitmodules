@@ -60,3 +60,6 @@
 [submodule "components/ESP32Time"]
 	path = components/ESP32Time
 	url = https://github.com/fbiego/ESP32Time.git
+[submodule "components/ArduinoJson"]
+	path = components/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson
