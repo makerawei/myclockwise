@@ -1,7 +1,3 @@
-[submodule "firmware/clockfaces/cw-cf-0x01"]
-	path = firmware/clockfaces/cw-cf-0x01
-	url = https://github.com/makerawei/cw-cf-0x01.git
-	shallow = true
 [submodule "firmware/clockfaces/cw-cf-0x02"]
 	path = firmware/clockfaces/cw-cf-0x02
 	url = https://github.com/jnthas/cw-cf-0x02.git
@@ -13,10 +9,6 @@
 [submodule "firmware/clockfaces/cw-cf-0x04"]
 	path = firmware/clockfaces/cw-cf-0x04
 	url = https://github.com/jnthas/cw-cf-0x04
-	shallow = true
-[submodule "firmware/clockfaces/cw-cf-0x05"]
-	path = firmware/clockfaces/cw-cf-0x05
-	url = git@github.com:makerawei/cw-cf-0x05.git
 	shallow = true
 [submodule "components/ezTime"]
 	path = components/ezTime
