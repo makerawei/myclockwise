@@ -16,10 +16,13 @@ protected:
     TickType_t _xLastAlarmTime;
     static AlarmTickCallbackType _tickFunc;
     static SemaphoreHandle_t _semaphore;
+    static String _alarmSoundUrl;
     
 public:
     IClockface(Adafruit_GFX* display);
+    virtual ~IClockface() {}
     virtual bool externalEvent(int type) {
+      tryToCancelAlarmTask();
       return true;
     }
     
@@ -28,6 +31,7 @@ public:
     bool isAlarmTaskRunning();
     void tryToCancelAlarmTask();
 
+    static void alarmSetSoundUrl(String url);
     static void alarmSetTickFunc(AlarmTickCallbackType func);
     static void alarmTask(void *args);
     static void alarmTimerCallback(TimerHandle_t xTimer);

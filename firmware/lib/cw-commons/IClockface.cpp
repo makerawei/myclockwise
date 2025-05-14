@@ -5,6 +5,9 @@
 EventBus eventBus;
 SemaphoreHandle_t IClockface::_semaphore = NULL;
 AlarmTickCallbackType IClockface::_tickFunc = NULL;
+String IClockface::_alarmSoundUrl = "";
+
+static unsigned long lastMillis = 0;
 
 
 IClockface::IClockface(Adafruit_GFX* display) {
@@ -13,10 +16,16 @@ IClockface::IClockface(Adafruit_GFX* display) {
   _alarmIndex = -1;
   Locator::provide(display);
   Locator::provide(&eventBus);
+  _semaphore = xSemaphoreCreateBinary();
 }
 
 void IClockface::updateTime() {
   _dateTime->updateNTP();
+  const int _alarmIndex = _dateTime->checkAlarm();
+  if(_alarmIndex >= 0) {
+    this->_alarmIndex = _alarmIndex;
+    alarmStarts();
+  }
 }
 
 
@@ -27,6 +36,10 @@ bool IClockface::isAlarmTaskRunning() {
 void IClockface::alarmSetTickFunc(AlarmTickCallbackType func) {
   Serial.println("set alram tick func success");
   IClockface::_tickFunc = func;
+}
+
+void IClockface::alarmSetSoundUrl(String url) {
+  IClockface::_alarmSoundUrl = url;
 }
 
 void IClockface::alarmTimerCallback(TimerHandle_t xTimer) {
@@ -72,11 +85,10 @@ void IClockface::tryToCancelAlarmTask() {
 }
 
 void IClockface::alarmTask(void *pvParams) {
-  String url = AUDIO_MARIO_START;
   TickType_t xLastWakeTime = xTaskGetTickCount();
   while(true) {
     vTaskDelay(pdMS_TO_TICKS(100));
-    AudioHelper::getInstance()->play(url);
+    AudioHelper::getInstance()->play(IClockface::_alarmSoundUrl);
     TickType_t xCurrentTime = xTaskGetTickCount();
     TickType_t elapsedTicks = xCurrentTime - xLastWakeTime;
     uint32_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
