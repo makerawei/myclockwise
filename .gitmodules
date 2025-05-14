@@ -42,10 +42,6 @@
 	path = components/WiFiManager
 	url = https://github.com/tzapu/WiFiManager
 	shallow = true
-[submodule "firmware/clockfaces/cw-cf-0x07"]
-	path = firmware/clockfaces/cw-cf-0x07
-	url = git@github.com:makerawei/cw-cf-0x07.git
-	shallow = true
 [submodule "components/NTPClient"]
 	path = components/NTPClient
 	url = https://github.com/arduino-libraries/NTPClient.git
