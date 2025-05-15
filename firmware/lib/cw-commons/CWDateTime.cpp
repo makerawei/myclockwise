@@ -41,8 +41,10 @@ void CWDateTime::begin(const char *timeZone, bool use24format, const char *ntpSe
 }
 
 void CWDateTime::updateNTP() {
-  if(ntp->update()) {
-    rtc->setTime(ntp->getEpochTime());
+  if(WiFi.status() == WL_CONNECTED) {
+    if(ntp->update()) {
+      rtc->setTime(ntp->getEpochTime());
+    }
   }
 }
 
