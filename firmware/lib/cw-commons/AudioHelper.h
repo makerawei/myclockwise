@@ -130,21 +130,23 @@ struct AudioHelper {
   }
 
   static void playerTask(void *pvParams) {
+    String url = String((char *)pvParams);
+    Serial.printf("play url:%s\n", url.c_str());
     if(pvParams) {
       while(true) {
-        AudioHelper::getInstance()->play(String((char *)pvParams));
+        AudioHelper::getInstance()->play(url);
         break;
       }
     }
     vTaskDelete(NULL);
   }
 
-  static void play(TaskFunction_t playFunc, String url, const int core=0) {
+  static void play(TaskFunction_t playFunc, const char *url, const int core=0) {
     xTaskCreatePinnedToCore(
       playFunc ? playFunc : &AudioHelper::playerTask,
       "playTask", 
       10240,
-      url.length() > 0 ? (void *)url.c_str() : NULL,
+      url != NULL ? (void *)url: NULL,
       1, 
       NULL,
       core
@@ -191,6 +193,7 @@ struct AudioHelper {
     WRITE_TO_FILE(file, buffer, bytesRead);
     totalBytesRead += bytesRead;
     while (totalBytesRead < fileSize) {
+      vTaskDelay(pdTICKS_TO_MS(10));
       size_t bytesToRead = min(bufferSize, fileSize - totalBytesRead);
       size_t bytesRead = stream->readBytes(buffer, bytesToRead);
       if (bytesRead > 0) {
@@ -239,6 +242,7 @@ struct AudioHelper {
       }
       write(buffer, bytesToRead);
       totalBytesRead += bytesRead;
+      vTaskDelay(pdTICKS_TO_MS(10));
     }
     stop();
     file.close();

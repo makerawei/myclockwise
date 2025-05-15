@@ -81,7 +81,7 @@ bool Clockface::externalEvent(int type) {
   tryToCancelAlarmTask();
   if (type == 0) {  //TODO create an enum
     if(mario.jump()) {
-      AudioHelper::play(&Clockface::jumpSoundTask, "", 0);
+      AudioHelper::play(&Clockface::jumpSoundTask, SOUND_BUTTON_CLICK_URL, 0);
     }
   }
   return false;

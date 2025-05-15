@@ -19,7 +19,7 @@
 #include "gfx/mario.h"
 #include "gfx/block.h"
 
-#define SOUND_ALARM_CLOCK_URL "https://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/mario_start.wav"
+#define SOUND_ALARM_CLOCK_URL "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/mario_start.wav"
 #define SOUND_BUTTON_CLICK_URL "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/mario_icon.wav"
 
 class Clockface: public IClockface {

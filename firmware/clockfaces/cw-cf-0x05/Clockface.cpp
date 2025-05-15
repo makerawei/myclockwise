@@ -275,3 +275,14 @@ void Clockface::drawMap()
 
   
 }
+
+bool Clockface::externalEvent(int type) {
+  tryToCancelAlarmTask();
+  if (type == 0) {
+    resetMap();
+    AudioHelper::play(NULL, SOUND_BUTTON_CLICK_URL, 0);
+  }
+  return true;
+}
+
+
