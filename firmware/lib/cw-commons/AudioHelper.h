@@ -13,9 +13,6 @@
 #define I2S_BCLK 32
 #define I2S_LRC 33
 
-#define AUDIO_MARIO_EAT_ICON "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/mario_icon.wav"
-#define AUDIO_MARIO_START "https://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/mario_start.wav"
-
 #define WRITE_TO_FILE(file, buffer, size) do { \
   if(file) { \
     file.write(buffer, size); \
@@ -132,6 +129,28 @@ struct AudioHelper {
     }
   }
 
+  static void playerTask(void *pvParams) {
+    if(pvParams) {
+      while(true) {
+        AudioHelper::getInstance()->play(String((char *)pvParams));
+        break;
+      }
+    }
+    vTaskDelete(NULL);
+  }
+
+  static void play(TaskFunction_t playFunc, String url, const int core=0) {
+    xTaskCreatePinnedToCore(
+      playFunc ? playFunc : &AudioHelper::playerTask,
+      "playTask", 
+      10240,
+      url.length() > 0 ? (void *)url.c_str() : NULL,
+      1, 
+      NULL,
+      core
+    );
+  }
+  
   void play(const int16_t *buffer, const size_t size) {}
 
   void play(String url) {

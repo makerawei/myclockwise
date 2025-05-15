@@ -19,6 +19,7 @@ unsigned long lastMillis = 0;
 
 Clockface::Clockface(Adafruit_GFX* display) : IClockface(display) {
   IClockface::alarmSetTickFunc(&Clockface::alarmTickCallback);
+  IClockface::alarmSetSoundUrl(SOUND_ALARM_CLOCK_URL);
 }
 
 void Clockface::alarmTickCallback() {
@@ -66,7 +67,7 @@ void Clockface::updateTime() {
 }
 
 void Clockface::jumpSoundTask(void *args) {
-  String url = AUDIO_MARIO_EAT_ICON;
+  String url = SOUND_BUTTON_CLICK_URL;
   while(true) {
     vTaskDelay(pdMS_TO_TICKS(200)); //等待200ms后马里奥跳跃可顶到砖块
     AudioHelper::getInstance()->play(url);
@@ -80,15 +81,7 @@ bool Clockface::externalEvent(int type) {
   tryToCancelAlarmTask();
   if (type == 0) {  //TODO create an enum
     if(mario.jump()) {
-      xTaskCreatePinnedToCore(
-        &Clockface::jumpSoundTask,
-        "JumpSoundTask", 
-        10240,
-        NULL,
-        1, 
-        NULL,
-        0 
-      );
+      AudioHelper::play(&Clockface::jumpSoundTask, "", 0);
     }
   }
   return false;
