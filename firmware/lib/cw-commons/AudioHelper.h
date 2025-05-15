@@ -242,7 +242,6 @@ struct AudioHelper {
       }
       write(buffer, bytesToRead);
       totalBytesRead += bytesRead;
-      vTaskDelay(pdTICKS_TO_MS(10));
     }
     stop();
     file.close();
