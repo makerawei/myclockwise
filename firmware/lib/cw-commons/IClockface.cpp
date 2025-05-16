@@ -44,12 +44,25 @@ void IClockface::automaticBrightControl()
       uint8_t slots = 10; //10 slots
       uint8_t mapLDR = map(currentValue > ldrMax ? ldrMax : currentValue, ldrMin, ldrMax, 1, slots);
       uint8_t mapBright = map(mapLDR, 1, slots, minBright, maxBright);
-
-      // Serial.printf("LDR: %d, mapLDR: %d, Bright: %d\n", currentValue, mapLDR, mapBright);
-      if(abs(currentBrightSlot - mapLDR ) >= 2 || mapBright == 0) {
-        ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(mapBright);
-           currentBrightSlot = mapLDR;
-          //  Serial.printf("setBrightness: %d , Update currentBrightSlot to %d\n", mapBright, mapLDR);
+      
+      Serial.printf("LDR: %d, mapLDR: %d, Bright: %d\n", currentValue, mapLDR, mapBright);
+      if(mapBright == 0) {
+        if(!_nightMode) {
+          Serial.println("***** change to night mode");
+          _nightMode = true;
+          init();
+        }
+      } else {
+        if(_nightMode) {
+          Serial.println("***** change to normal mode");
+          _nightMode = false;
+          init();
+        }
+        if(abs(currentBrightSlot - mapLDR ) >= 2) {
+          ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(mapBright);
+          currentBrightSlot = mapLDR;
+          Serial.printf("----> setBrightness: %d , Update currentBrightSlot to %d\n", mapBright, mapLDR);
+        }
       }
       autoBrightMillis = millis();
     }
@@ -85,7 +98,8 @@ void IClockface::setupNightMode() {
   Locator::getDisplay()->setFont(&FreeSerifBold9pt7b);
   Locator::getDisplay()->fillRect(0, 0, 64, 64, 0);
   Locator::getDisplay()->setTextColor(0xf800);
-  ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(10);
+  ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(NIGHT_MODE_BRIGHTNESS);
+  Serial.println("====> set brightness to night mode");
 }
 
 void IClockface::updateNightMode() {

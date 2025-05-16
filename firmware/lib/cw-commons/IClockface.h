@@ -6,6 +6,7 @@
 
 #define MIN_BRIGHT_DISPLAY_ON 4
 #define MIN_BRIGHT_DISPLAY_OFF 0
+#define NIGHT_MODE_BRIGHTNESS 10
 
 typedef void (*AlarmTickCallbackType)(void);
 
