@@ -12,11 +12,10 @@ Clockface::Clockface(Adafruit_GFX* display) : IClockface(display) {
   IClockface::alarmSetSoundUrl(SOUND_ALARM_CLOCK_URL);
 }
 
-void Clockface::setup(CWDateTime *dateTime) {
-  this->_dateTime = dateTime;
+void Clockface::setup() {
   this->_dateTime->updateNTP();
   Locator::getDisplay()->setFont(&hourFont);
-  randomSeed(dateTime->getMilliseconds() + millis());
+  randomSeed(this->_dateTime->getMilliseconds() + millis());
   drawMap();
   updateClock();
 }
@@ -107,6 +106,7 @@ void Clockface::updateTime() {
   }
 }
 
+
 void Clockface::updateClock() {
     this->updateTime();
     Locator::getDisplay()->fillRect(14, 19, 36, 26, 0x0000);
@@ -153,7 +153,7 @@ void Clockface::directionDecision(MapBlock nextBlk, bool moving_axis_x) {
 void Clockface::resetMap() {
 
   memcpy( _MAP, _MAP_CONST, sizeof(_MAP_CONST) );
-  drawMap();
+  //drawMap();
   updateClock();
 }
 

@@ -1,6 +1,8 @@
 #include "IClockface.h"
 #include <Locator.h>
 #include <EventBus.h>
+#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
+#include "FreeSerifBold9pt7b.h"
 
 EventBus eventBus;
 SemaphoreHandle_t IClockface::_semaphore = NULL;
@@ -12,11 +14,28 @@ static unsigned long lastMillis = 0;
 
 IClockface::IClockface(Adafruit_GFX* display) {
   _display = display;
+  _dateTime = CWDateTime::getInstance();
   _alarmTimer = NULL;
   _alarmIndex = -1;
+  _nightMode = false;
   Locator::provide(display);
   Locator::provide(&eventBus);
   _semaphore = xSemaphoreCreateBinary();
+}
+
+void IClockface::init() {
+  if(_nightMode) {
+    setupNightMode();
+  } else {
+    setup();
+  }
+}
+void IClockface::loop() {
+  if(_nightMode) {
+    updateNightMode();
+  } else {
+    update();
+  }
 }
 
 void IClockface::updateTime() {
@@ -28,6 +47,33 @@ void IClockface::updateTime() {
   }
 }
 
+void IClockface::setupNightMode() {
+  Locator::getDisplay()->setFont(&FreeSerifBold9pt7b);
+  Locator::getDisplay()->fillRect(0, 0, 64, 64, 0);
+  Locator::getDisplay()->setTextColor(0xf800);
+  ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(10);
+}
+
+void IClockface::updateNightMode() {
+  if(millis() - lastMillis < 1000) {
+    return;
+  }
+  static char preTimeStr[10] = {0};
+  lastMillis = millis();
+  char timeStr[10] = {0};
+  snprintf(timeStr, sizeof(timeStr), "%s:%s", _dateTime->getHour("%02d"), _dateTime->getMinute("%02d"));
+  if(strcmp(preTimeStr, timeStr) == 0) {
+    return;
+  }
+  int16_t x, y;
+  uint16_t w, h;
+  strncpy(preTimeStr, timeStr, sizeof(preTimeStr) - 1);
+  Locator::getDisplay()->fillRect(0, 0, 64, 64, 0);
+  Locator::getDisplay()->getTextBounds(timeStr, 0, 0, &x, &y, &w, &h);
+  Locator::getDisplay()->setCursor(32 - (w / 2), 32);
+  Locator::getDisplay()->print(timeStr);
+  this->updateTime();
+}
 
 bool IClockface::isAlarmTaskRunning() {
   return _alarmIndex >= 0;

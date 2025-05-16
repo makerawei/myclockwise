@@ -89,7 +89,7 @@ void setup()
   Serial.begin(115200);
   pinMode(ESP32_LED_BUILTIN, OUTPUT);
   pinMode(USER_BUTTON_PIN, INPUT);
-
+  
   AudioHelper::getInstance()->begin();
   StatusController::getInstance()->blink_led(5, 100);
 
@@ -114,7 +114,7 @@ void setup()
         ClockwiseParams::getInstance()->ntpServer.c_str(),
         ClockwiseParams::getInstance()->manualPosix.c_str(),
         ClockwiseParams::getInstance()->alarmClock.c_str());
-    clockface->setup(CWDateTime::getInstance());
+    clockface->init();
     if(wifi.isConnected()) {
       ClockwiseWebServer::getInstance()->handleHttpRequestInTask();
     }
@@ -165,7 +165,7 @@ void loop()
 
   if (wifi.connectionSucessfulOnce)
   {
-    clockface->update();
+    clockface->loop();
   }
 
   automaticBrightControl();

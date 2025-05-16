@@ -14,6 +14,7 @@ protected:
     TaskHandle_t _xAlarmTaskHandle;    
     TimerHandle_t _alarmTimer;
     TickType_t _xLastAlarmTime;
+    bool _nightMode; // 是否启动夜间模式
     static AlarmTickCallbackType _tickFunc;
     static SemaphoreHandle_t _semaphore;
     static String _alarmSoundUrl;
@@ -25,6 +26,17 @@ public:
       tryToCancelAlarmTask();
       return true;
     }
+
+    // 夜间模式的初始化和更新函数保持默认
+    void setupNightMode();
+    void updateNightMode();
+
+    // 正常模式下的初始化和更新函数需要不同的表盘自己实现代码
+    virtual void setup() = 0;
+    virtual void update() = 0;
+
+    void init();
+    void loop();
     
     void updateTime();
     bool alarmStarts();
@@ -35,8 +47,4 @@ public:
     static void alarmSetTickFunc(AlarmTickCallbackType func);
     static void alarmTask(void *args);
     static void alarmTimerCallback(TimerHandle_t xTimer);
-    
-    virtual void setup(CWDateTime *dateTime) = 0;
-    virtual void update() = 0;
-
 };

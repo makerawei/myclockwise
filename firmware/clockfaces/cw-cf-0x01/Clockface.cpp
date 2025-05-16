@@ -26,9 +26,7 @@ void Clockface::alarmTickCallback() {
   Locator::getEventBus()->broadcast(COLLISION, &mario);
 }
 
-void Clockface::setup(CWDateTime *dateTime) {
-  _dateTime = dateTime;
-
+void Clockface::setup() {
   Locator::getDisplay()->setFont(&Super_Mario_Bros__24pt7b);
   Locator::getDisplay()->fillRect(0, 0, 64, 64, SKY_COLOR);
 

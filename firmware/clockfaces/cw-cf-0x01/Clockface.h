@@ -28,7 +28,7 @@ class Clockface: public IClockface {
 
   public:
     Clockface(Adafruit_GFX* display);
-    void setup(CWDateTime *dateTime);
+    void setup();
     void update();
     bool externalEvent(int type) override;
     // 通过FreeRTOS任务执行jump，避免阻塞

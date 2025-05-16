@@ -118,10 +118,12 @@ class Clockface: public IClockface {
     const char* weekDayName(int weekday);
     const char* monthName(int month);
     void updateTime();
+
     
   public:
     Clockface(Adafruit_GFX* display);    
     bool externalEvent(int type) override;
-    void setup(CWDateTime *dateTime);
+
+    void setup();
     void update();
 };
