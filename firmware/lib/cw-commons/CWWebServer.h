@@ -84,6 +84,26 @@ struct ClockwiseWebServer
     }
   }
 
+  static void httpRequestTask(void *pvParams) {
+    while(true) {
+      ClockwiseWebServer::getInstance()->handleHttpRequest();
+      vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    vTaskDelete(NULL);
+  }
+  
+  void handleHttpRequestInTask() {
+    xTaskCreatePinnedToCore(
+      httpRequestTask,
+      "httpRequestTask", 
+      4096,
+      NULL,
+      1,
+      NULL,
+      0
+    );
+  }
+
   void processRequest(WiFiClient client, String method, String path, String key, String value)
   {
     value.trim();

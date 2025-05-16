@@ -115,6 +115,9 @@ void setup()
         ClockwiseParams::getInstance()->manualPosix.c_str(),
         ClockwiseParams::getInstance()->alarmClock.c_str());
     clockface->setup(CWDateTime::getInstance());
+    if(wifi.isConnected()) {
+      ClockwiseWebServer::getInstance()->handleHttpRequestInTask();
+    }
   }
 }
 
@@ -153,10 +156,12 @@ void loop()
 {
   wifi.handleImprovWiFi();
 
+  /*
   if (wifi.isConnected())
   {
     ClockwiseWebServer::getInstance()->handleHttpRequest();
   }
+  */
 
   if (wifi.connectionSucessfulOnce)
   {
