@@ -12,7 +12,8 @@ Clockface::Clockface(Adafruit_GFX* display) : IClockface(display) {
   IClockface::alarmSetSoundUrl(SOUND_ALARM_CLOCK_URL);
 }
 
-void Clockface::setup() {
+void Clockface::setup() {  
+  this->_dateTime = CWDateTime::getInstance(); // 必须在这里面初始化一次，不然会崩溃
   this->_dateTime->updateNTP();
   Locator::getDisplay()->setFont(&hourFont);
   randomSeed(this->_dateTime->getMilliseconds() + millis());
@@ -78,8 +79,6 @@ void Clockface::update()
 
     lastMillis = millis();
   }
-
-  
   
 }
 
@@ -151,9 +150,8 @@ void Clockface::directionDecision(MapBlock nextBlk, bool moving_axis_x) {
 
 
 void Clockface::resetMap() {
-
   memcpy( _MAP, _MAP_CONST, sizeof(_MAP_CONST) );
-  //drawMap();
+  drawMap();
   updateClock();
 }
 
