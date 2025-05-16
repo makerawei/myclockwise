@@ -133,7 +133,7 @@ void IClockface::tryToCancelAlarmTask() {
 void IClockface::alarmTask(void *pvParams) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
   while(true) {
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(1);
     AudioHelper::getInstance()->play(IClockface::_alarmSoundUrl);
     TickType_t xCurrentTime = xTaskGetTickCount();
     TickType_t elapsedTicks = xCurrentTime - xLastWakeTime;
