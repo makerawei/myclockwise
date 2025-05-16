@@ -4,6 +4,9 @@
 #include "AudioHelper.h"
 #include "CWDateTime.h"
 
+#define MIN_BRIGHT_DISPLAY_ON 4
+#define MIN_BRIGHT_DISPLAY_OFF 0
+
 typedef void (*AlarmTickCallbackType)(void);
 
 class IClockface {
@@ -27,6 +30,7 @@ public:
       return true;
     }
 
+    virtual void automaticBrightControl();
     // 夜间模式的初始化和更新函数保持默认
     void setupNightMode();
     void updateNightMode();

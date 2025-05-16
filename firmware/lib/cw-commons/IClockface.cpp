@@ -3,6 +3,7 @@
 #include <EventBus.h>
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include "FreeSerifBold9pt7b.h"
+#include "CWPreferences.h"
 
 EventBus eventBus;
 SemaphoreHandle_t IClockface::_semaphore = NULL;
@@ -23,6 +24,38 @@ IClockface::IClockface(Adafruit_GFX* display) {
   _semaphore = xSemaphoreCreateBinary();
 }
 
+void IClockface::automaticBrightControl()
+{
+  static long autoBrightMillis = 0;
+  static uint8_t currentBrightSlot = -1;
+
+  bool autoBrightEnabled = (ClockwiseParams::getInstance()->autoBrightMax > 0);
+  if (autoBrightEnabled) {
+    if (millis() - autoBrightMillis > 3000)
+    {
+      int16_t currentValue = analogRead(ClockwiseParams::getInstance()->ldrPin);
+
+      uint16_t ldrMin = ClockwiseParams::getInstance()->autoBrightMin;
+      uint16_t ldrMax = ClockwiseParams::getInstance()->autoBrightMax;
+
+      const uint8_t minBright = (currentValue < ldrMin ? MIN_BRIGHT_DISPLAY_OFF : MIN_BRIGHT_DISPLAY_ON);
+      uint8_t maxBright = ClockwiseParams::getInstance()->displayBright;
+
+      uint8_t slots = 10; //10 slots
+      uint8_t mapLDR = map(currentValue > ldrMax ? ldrMax : currentValue, ldrMin, ldrMax, 1, slots);
+      uint8_t mapBright = map(mapLDR, 1, slots, minBright, maxBright);
+
+      // Serial.printf("LDR: %d, mapLDR: %d, Bright: %d\n", currentValue, mapLDR, mapBright);
+      if(abs(currentBrightSlot - mapLDR ) >= 2 || mapBright == 0) {
+        ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(mapBright);
+           currentBrightSlot = mapLDR;
+          //  Serial.printf("setBrightness: %d , Update currentBrightSlot to %d\n", mapBright, mapLDR);
+      }
+      autoBrightMillis = millis();
+    }
+  }
+}
+
 void IClockface::init() {
   if(_nightMode) {
     setupNightMode();
@@ -31,6 +64,7 @@ void IClockface::init() {
   }
 }
 void IClockface::loop() {
+  automaticBrightControl();
   if(_nightMode) {
     updateNightMode();
   } else {
