@@ -162,7 +162,7 @@ struct AudioHelper {
       download(url);
     }
   }
-
+  
   void download(String url, bool play=false) {
     if (WiFi.status() != WL_CONNECTED) {
       return;
@@ -182,7 +182,11 @@ struct AudioHelper {
     Serial.printf("cache filePath is %s\n", filePath);
     file = SPIFFS.open(filePath, FILE_WRITE);
     if(!file) {
-      Serial.println("open cache file failed");
+      Serial.println("open cache file failed, try to format FS");
+      if(SPIFFS.format()) {
+        Serial.println("SPIFFS format success");
+      }
+      return;
     }
     WiFiClient *stream = http.getStreamPtr();
     const size_t bufferSize = 64;
@@ -225,6 +229,9 @@ struct AudioHelper {
     Serial.printf("fileSize is %d\n", fileSize);
     if(fileSize < 44) {
       Serial.println("invalid audio file size, need re-download");
+      if(SPIFFS.remove(filePath)) {
+        Serial.printf("file:%s removed\r\n", filePath);
+      }
       return false;
     }
     const size_t bufferSize = DMA_BUF_LEN;
