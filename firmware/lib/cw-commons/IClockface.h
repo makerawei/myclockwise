@@ -34,7 +34,7 @@ public:
     virtual void automaticBrightControl();
     // 夜间模式的初始化和更新函数保持默认
     void setupNightMode();
-    void updateNightMode();
+    void updateNightMode(bool forceUpdate=false);
 
     // 正常模式下的初始化和更新函数需要不同的表盘自己实现代码
     virtual void setup() = 0;
@@ -46,7 +46,7 @@ public:
     void updateTime();
     bool alarmStarts();
     bool isAlarmTaskRunning();
-    void tryToCancelAlarmTask();
+    bool tryToCancelAlarmTask();
 
     static void alarmSetSoundUrl(String url);
     static void alarmSetTickFunc(AlarmTickCallbackType func);

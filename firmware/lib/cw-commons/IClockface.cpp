@@ -27,7 +27,7 @@ IClockface::IClockface(Adafruit_GFX* display) {
 void IClockface::automaticBrightControl()
 {
   static long autoBrightMillis = 0;
-  static uint8_t currentBrightSlot = -1;
+  static uint8_t currentBrightLevel = -1;
 
   bool autoBrightEnabled = (ClockwiseParams::getInstance()->autoBrightMax > 0);
   if (autoBrightEnabled) {
@@ -41,27 +41,30 @@ void IClockface::automaticBrightControl()
       const uint8_t minBright = (currentValue < ldrMin ? MIN_BRIGHT_DISPLAY_OFF : MIN_BRIGHT_DISPLAY_ON);
       uint8_t maxBright = ClockwiseParams::getInstance()->displayBright;
 
-      uint8_t slots = 10; //10 slots
-      uint8_t mapLDR = map(currentValue > ldrMax ? ldrMax : currentValue, ldrMin, ldrMax, 1, slots);
-      uint8_t mapBright = map(mapLDR, 1, slots, minBright, maxBright);
+      uint8_t slots = 30; //10 slots
+      uint8_t mapLevel = map(currentValue > ldrMax ? ldrMax : currentValue, ldrMin, ldrMax, 1, slots);
+      uint8_t mapBright = map(mapLevel, 0, slots, minBright, maxBright);
       
-      Serial.printf("LDR: %d, mapLDR: %d, Bright: %d\n", currentValue, mapLDR, mapBright);
-      if(mapBright == 0) {
+      Serial.printf("LDR: %d, mapLevel/currentBrightLevel: %d/%d, mapBright: %d, isNightMode: %d\n", currentValue, mapLevel, currentBrightLevel, mapBright, _nightMode);
+      if(mapLevel < 3 ) {
         if(!_nightMode) {
-          Serial.println("***** change to night mode");
+          Serial.println("***** change to night mode *****");
           _nightMode = true;
           init();
         }
       } else {
         if(_nightMode) {
-          Serial.println("***** change to normal mode");
+          Serial.println("***** change to normal mode *****");
           _nightMode = false;
+          ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(mapBright);
+          currentBrightLevel = mapLevel;
+          Serial.printf("***** setBrightness: %d , Update currentBrightLevel to %d\n", mapBright, mapLevel);
           init();
         }
-        if(abs(currentBrightSlot - mapLDR ) >= 2) {
+        if(abs(currentBrightLevel - mapLevel ) >= 4) {
           ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(mapBright);
-          currentBrightSlot = mapLDR;
-          Serial.printf("----> setBrightness: %d , Update currentBrightSlot to %d\n", mapBright, mapLDR);
+          currentBrightLevel = mapLevel;
+          Serial.printf("----> setBrightness: %d , Update currentBrightLevel to %d\n", mapBright, mapLevel);
         }
       }
       autoBrightMillis = millis();
@@ -95,22 +98,22 @@ void IClockface::updateTime() {
 }
 
 void IClockface::setupNightMode() {
-  Locator::getDisplay()->setFont(&FreeSerifBold9pt7b);
-  Locator::getDisplay()->fillRect(0, 0, 64, 64, 0);
-  Locator::getDisplay()->setTextColor(0xf800);
   ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(NIGHT_MODE_BRIGHTNESS);
-  Serial.println("====> set brightness to night mode");
+  Locator::getDisplay()->setFont(&FreeSerifBold9pt7b);
+  Locator::getDisplay()->setTextColor(0xf800);
+  updateNightMode(true);
+  Serial.printf("====> set brightness to night mode, brightNess: %d\n", NIGHT_MODE_BRIGHTNESS);
 }
 
-void IClockface::updateNightMode() {
-  if(millis() - lastMillis < 1000) {
+void IClockface::updateNightMode(bool forceUpdate) {
+  if(millis() - lastMillis < 1000 && !forceUpdate) {
     return;
   }
   static char preTimeStr[10] = {0};
   lastMillis = millis();
   char timeStr[10] = {0};
   snprintf(timeStr, sizeof(timeStr), "%s:%s", _dateTime->getHour("%02d"), _dateTime->getMinute("%02d"));
-  if(strcmp(preTimeStr, timeStr) == 0) {
+  if(strcmp(preTimeStr, timeStr) == 0 && !forceUpdate) {
     return;
   }
   int16_t x, y;
@@ -156,7 +159,7 @@ void IClockface::alarmTimerCallback(TimerHandle_t xTimer) {
   }
 }
 
-void IClockface::tryToCancelAlarmTask() {
+bool IClockface::tryToCancelAlarmTask() {
   Serial.println("try to cancel alarm task");
   if(isAlarmTaskRunning()) {
     Serial.println("alarm task is running, cancel it");
@@ -173,15 +176,17 @@ void IClockface::tryToCancelAlarmTask() {
     if(xSemaphoreTake(_semaphore, pdMS_TO_TICKS(1000)) == pdTRUE) {
       Serial.println("alarm xSemaphoreTake done");
     }
+    return true;
   } else {
     Serial.println("alarm task is not running, just ignore");
+    return false;
   }
 }
 
 void IClockface::alarmTask(void *pvParams) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
   while(true) {
-    vTaskDelay(1);
+    //vTaskDelay(1);
     AudioHelper::getInstance()->play(IClockface::_alarmSoundUrl);
     TickType_t xCurrentTime = xTaskGetTickCount();
     TickType_t elapsedTicks = xCurrentTime - xLastWakeTime;
