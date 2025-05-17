@@ -38,7 +38,7 @@ void Clockface::setup() {
   cloud2.draw(51, 7);
 
   updateTime();
-  
+
   hourBlock.init();
   minuteBlock.init();
   mario.init();

@@ -25,7 +25,8 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
     <div id="fw-version" class="w3-bar-item w3-black w3-hover-red"></div>
     <div id="ssid" class="w3-bar-item w3-hover-blue w3-right"></div>
     <div class="w3-bar-item w3-button w3-hover-yellow w3-right" onclick="restartDevice();"><i class='fa fa-power-off'></i> Restart</div>
-    <div class="w3-bar-item w3-button w3-hover-yellow w3-right" onclick="jump();"><i class="fa-solid fa-person-walking"></i> Jump</div>
+    <div class="w3-bar-item w3-button w3-hover-yellow w3-right" onclick="pushButton();"><i class="fa-solid fa-person-walking"></i>PushButton</div>
+    <div class="w3-bar-item w3-button w3-hover-yellow w3-right" onclick="formatSpiffs();"><i class="fa-solid fa-person-walking"></i> FormatSpiffs</div>
     <div id="status" class="w3-bar-item w3-green" style="display:none"><i class='fa fa-floppy-o'></i> Saved! Restart your device</div>
   </div>
 
@@ -237,12 +238,17 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
       xhr.send();
     }
 
-    function jump() {
+    function pushButton() {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/jump');
+      xhr.open('POST', '/button');
       xhr.send();
     }
 
+    function formatSpiffs() {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/format');
+      xhr.send();
+    }
     //Local
     //createCards({ "displayBright": 30, "swapBlueGreen": 1, "use24hFormat": 0, "timeZone": "Europe/Lisbon", "ntpServer": "pool.ntp.org", "wifiSsid": "test", "autoBrightMin":0, "autoBrightMax":800, "ldrPin":35, "cw_fw_version":"1.2.2", "clockface_name":"cw-cf-0x07", "canvasServer":"raw.githubusercontent.com", "canvasFile":"star-wars.json" });
 

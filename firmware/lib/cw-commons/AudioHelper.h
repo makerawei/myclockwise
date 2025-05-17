@@ -13,6 +13,8 @@
 #define I2S_BCLK 32
 #define I2S_LRC 33
 
+#define SUCCESS_SOUND_URL "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/success.wav"
+
 #define WRITE_TO_FILE(file, buffer, size) do { \
   if(file) { \
     file.write(buffer, size); \
@@ -152,7 +154,7 @@ struct AudioHelper {
       core
     );
   }
-  
+
   void play(const int16_t *buffer, const size_t size) {}
 
   void play(String url) {
@@ -197,7 +199,6 @@ struct AudioHelper {
     WRITE_TO_FILE(file, buffer, bytesRead);
     totalBytesRead += bytesRead;
     while (totalBytesRead < fileSize) {
-      vTaskDelay(pdTICKS_TO_MS(10));
       size_t bytesToRead = min(bufferSize, fileSize - totalBytesRead);
       size_t bytesRead = stream->readBytes(buffer, bytesToRead);
       if (bytesRead > 0) {
@@ -215,7 +216,7 @@ struct AudioHelper {
     if(file) {
       file.close();
     }
-    Serial.printf("play finished, audio file size is %d\n", fileSize);
+    Serial.printf("download success, file size is %d\n", fileSize);
   }
 
   bool play(const char *filePath) {
