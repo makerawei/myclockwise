@@ -9,12 +9,16 @@ void EventBus::broadcast(EventType event, Sprite* sender) {
 
 
 void EventBus::subscribe(EventTask* task) {
-  
   if (_subNum < 5) {
+    for(uint8_t i = 0; i < _subNum; i++) {
+      if(_subscriptions[_subNum] == task) {
+        Serial.println("task is already subscribed, just ignore");
+        return;
+      } 
+    }
     _subscriptions[_subNum] = task;
     _subNum++;
   } else {
-    Serial.println("Out of space");
+    Serial.println("subscribe Out of space");
   }
-
 }

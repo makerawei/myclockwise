@@ -145,7 +145,7 @@ struct AudioHelper {
     xTaskCreatePinnedToCore(
       playFunc ? playFunc : &AudioHelper::playerTask,
       "playTask", 
-      10240,
+      8192,
       url != NULL ? (void *)url: NULL,
       1, 
       NULL,
