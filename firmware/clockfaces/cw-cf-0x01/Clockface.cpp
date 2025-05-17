@@ -77,14 +77,13 @@ void Clockface::jumpSoundTask(void *args) {
 
 bool Clockface::externalEvent(int type) {
   // 如果闹钟已经开始，按下按钮取消闹钟，不再播放跳起的音效
-  if(tryToCancelAlarmTask()) {
-    return true;
+  if(tryToCancelAlarmTask() || isNightMode()) {
+    return false;
   }
   if (type == 0) {  //TODO create an enum
     if(mario.jump()) {
       AudioHelper::play(&Clockface::jumpSoundTask, SOUND_BUTTON_CLICK_URL, 0);
     }
   }
-  return false;
+  return true;
 }
-

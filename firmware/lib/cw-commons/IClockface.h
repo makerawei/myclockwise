@@ -35,7 +35,7 @@ public:
     // 夜间模式的初始化和更新函数保持默认
     void setupNightMode();
     void updateNightMode(bool forceUpdate=false);
-
+    bool isNightMode();
     // 正常模式下的初始化和更新函数需要不同的表盘自己实现代码
     virtual void setup() = 0;
     virtual void update() = 0;

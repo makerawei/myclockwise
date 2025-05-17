@@ -30,46 +30,45 @@ void IClockface::automaticBrightControl()
   static uint8_t currentBrightLevel = -1;
 
   bool autoBrightEnabled = (ClockwiseParams::getInstance()->autoBrightMax > 0);
-  if (autoBrightEnabled) {
-    if (millis() - autoBrightMillis > 3000)
-    {
-      int16_t currentValue = analogRead(ClockwiseParams::getInstance()->ldrPin);
-
-      uint16_t ldrMin = ClockwiseParams::getInstance()->autoBrightMin;
-      uint16_t ldrMax = ClockwiseParams::getInstance()->autoBrightMax;
-
-      const uint8_t minBright = (currentValue < ldrMin ? MIN_BRIGHT_DISPLAY_OFF : MIN_BRIGHT_DISPLAY_ON);
-      uint8_t maxBright = ClockwiseParams::getInstance()->displayBright;
-
-      uint8_t slots = 30; //10 slots
-      uint8_t mapLevel = map(currentValue > ldrMax ? ldrMax : currentValue, ldrMin, ldrMax, 1, slots);
-      uint8_t mapBright = map(mapLevel, 0, slots, minBright, maxBright);
-      
-      Serial.printf("LDR: %d, mapLevel/currentBrightLevel: %d/%d, mapBright: %d, isNightMode: %d\n", currentValue, mapLevel, currentBrightLevel, mapBright, _nightMode);
-      if(mapLevel < 3 ) {
-        if(!_nightMode) {
-          Serial.println("***** change to night mode *****");
-          _nightMode = true;
-          init();
-        }
-      } else {
-        if(_nightMode) {
-          Serial.println("***** change to normal mode *****");
-          _nightMode = false;
-          ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(mapBright);
-          currentBrightLevel = mapLevel;
-          Serial.printf("***** setBrightness: %d , Update currentBrightLevel to %d\n", mapBright, mapLevel);
-          init();
-        }
-        if(abs(currentBrightLevel - mapLevel ) >= 4) {
-          ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(mapBright);
-          currentBrightLevel = mapLevel;
-          Serial.printf("----> setBrightness: %d , Update currentBrightLevel to %d\n", mapBright, mapLevel);
-        }
-      }
-      autoBrightMillis = millis();
+  if (!autoBrightEnabled || millis() - autoBrightMillis <= 3000) {
+    return;
+  }
+  int16_t currentValue = analogRead(ClockwiseParams::getInstance()->ldrPin);
+  uint16_t ldrMin = ClockwiseParams::getInstance()->autoBrightMin;
+  uint16_t ldrMax = ClockwiseParams::getInstance()->autoBrightMax;
+  const uint8_t minBright = (currentValue < ldrMin ? MIN_BRIGHT_DISPLAY_OFF : MIN_BRIGHT_DISPLAY_ON);
+  uint8_t maxBright = ClockwiseParams::getInstance()->displayBright;
+  uint8_t slots = 15; //10 slots
+  uint8_t mapLevel = map(currentValue > ldrMax ? ldrMax : currentValue, ldrMin, ldrMax, 1, slots);
+  uint8_t mapBright = map(mapLevel, 0, slots, minBright, maxBright);
+  
+  Serial.printf("LDR: %d, mapLevel/currentBrightLevel: %d/%d, mapBright: %d, isNightMode: %d\n", currentValue, mapLevel, currentBrightLevel, mapBright, _nightMode);
+  if(mapLevel < 3 ) {
+    if(!_nightMode) {
+      Serial.println("***** change to night mode *****");
+      _nightMode = true;
+      init();
+    }
+  } else {
+    if(_nightMode) {
+      Serial.println("***** change to normal mode *****");
+      _nightMode = false;
+      ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(mapBright);
+      currentBrightLevel = mapLevel;
+      Serial.printf("***** setBrightness: %d , Update currentBrightLevel to %d\n", mapBright, mapLevel);
+      init();
+    }
+    if(abs(currentBrightLevel - mapLevel ) >= 3) {
+      ((MatrixPanel_I2S_DMA *)Locator::getDisplay())->setBrightness8(mapBright);
+      currentBrightLevel = mapLevel;
+      Serial.printf("----> setBrightness: %d , Update currentBrightLevel to %d\n", mapBright, mapLevel);
     }
   }
+  autoBrightMillis = millis();
+}
+
+bool IClockface::isNightMode() {
+  return _nightMode;
 }
 
 void IClockface::init() {
