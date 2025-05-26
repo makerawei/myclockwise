@@ -24,6 +24,8 @@ menu "Clockwise Configuration"
   config CLOCKFACE_PACMAN
     bool "Pacman"
 
+  config CLOCKFACE_ISLAND
+    bool "Island"
 
   endchoice # CLOCKFACE
 
