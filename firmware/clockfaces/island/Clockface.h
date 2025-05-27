@@ -12,7 +12,6 @@
 #include <CWDateTime.h>
 #include <AudioHelper.h>
 
-#include "gfx/Font5x7Fixed.h"
 #include "gfx/assets.h"
 #include "gfx/hero.h"
 #include "gfx/block.h"

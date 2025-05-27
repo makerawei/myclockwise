@@ -9,7 +9,7 @@ Object cloud2(CLOUD2, 10, 9); // 云朵2
 Object roadSign(ROAD_SIGN, 12, 16); //路标
 
 Hero hero(24, 19); // 高桥名人
-Block timeBlock(13, 4); // 时间显示砖块
+Block timeBlock(13, 3); // 时间显示砖块
 
 unsigned long lastMillis = 0;
 
@@ -23,7 +23,6 @@ void Clockface::alarmTickCallback() {
 }
 
 void Clockface::setup() {
-  Locator::getDisplay()->setFont(&Font5x7Fixed);
   Locator::getDisplay()->fillRect(0, 0, 64, 64, SKY_COLOR);
 
   ground.fillRow(DISPLAY_HEIGHT - ground._height);
@@ -40,9 +39,9 @@ void Clockface::setup() {
 }
 
 void Clockface::update() {
-  //hourBlock.update();
+  timeBlock.update();
   hero.update();
-  if (_dateTime->getSecond() == 0 && millis() - lastMillis > 1000) {
+  if (_dateTime->getSecond() == 0 && millis() - lastMillis >= 1000) {
     if(!isAlarmTaskRunning()) {
       hero.jump();
     }
@@ -53,11 +52,7 @@ void Clockface::update() {
 
 void Clockface::updateTime() {
   IClockface::updateTime();
-  // Locator::getDisplay()->setCursor(48, 8);
-  // Locator::getDisplay()->setTextColor(0xa000);
-  // Locator::getDisplay()->print(_dateTime->getHour(FORMAT_TWO_DIGITS));
-  //hourBlock.setText(String(_dateTime->getHour()));
-  //minuteBlock.setText(String(_dateTime->getMinute(FORMAT_TWO_DIGITS)));
+  timeBlock.setText(String(_dateTime->getHour(FORMAT_TWO_DIGITS)) + String(_dateTime->getMinute(FORMAT_TWO_DIGITS)));
 }
 
 void Clockface::jumpSoundTask(void *args) {

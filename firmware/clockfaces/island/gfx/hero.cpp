@@ -6,41 +6,33 @@ const uint8_t HERO_FRAME_COUNT = sizeof(HERO_FRAME_PTRS) / sizeof(HERO_FRAME_PTR
 Hero::Hero(int x, int y) {
   _x = x;
   _y = y;
-  _currentFrame = 0;
-}
-
-void Hero::move(Direction dir, int times) {
-  if (dir == RIGHT) {
-    _x += MARIO_PACE;
-  } else if (dir == LEFT) {
-    _x -= MARIO_PACE;
-  }
 }
 
 bool Hero::jump() {
-  bool canJump = _state != JUMPING && (millis() - lastMillis > 500);
-  if (canJump) {
-    _lastState = _state;
-    _state = JUMPING;
-    Locator::getDisplay()->fillRect(_x, _y, _width, _height, SKY_COLOR);
-    _width = HERO1_SIZE[0];
-    _height = HERO1_SIZE[1];
-    _sprite = HERO1;
-
-    direction = UP;
-
-    _lastY = _y;
-    _lastX = _x;
+  bool canJump = _state != JUMPING;
+  if(!canJump) {
+    return false;
   }
-
-  return canJump;
+  
+  Locator::getDisplay()->fillRect(_x, _y, _width, _height, SKY_COLOR);
+  _lastState = _state;
+  _duration = 120;
+  _state = JUMPING;
+  direction = UP;
+  _lastY = _y;
+  _lastX = _x;
+  _width = HERO_JUMP_SIZE[0];
+  _height = HERO_JUMP_SIZE[1];
+  
+  return true;
 }
 
 void Hero::idle() {
   if (_state != IDLE) {
-    _lastState = _state;
-    _state = IDLE;
     Locator::getDisplay()->fillRect(_x, _y, _width, _height, SKY_COLOR);
+    _lastState = _state;
+    _duration = 100;
+    _state = IDLE;
     _width = HERO1_SIZE[0];
     _height = HERO1_SIZE[1];
   }
@@ -52,14 +44,27 @@ void Hero::init() {
 }
 
 void Hero::update() {
-  if (millis() - lastMillis < 100) {
+  if (millis() - lastMillis < _duration) {
     return;
   }
   lastMillis = millis();
-  const uint16_t *hero = (const uint16_t*)pgm_read_ptr(&HERO_FRAME_PTRS[_currentFrame]);
-  Locator::getDisplay()->drawRGBBitmap(_x, _y, hero, HERO1_SIZE[0], HERO1_SIZE[1]);
-  if(++_currentFrame >= HERO_FRAME_COUNT) {
-    _currentFrame = 0;
+  if(_state == IDLE) {
+    const uint16_t *hero = (const uint16_t*)pgm_read_ptr(&HERO_FRAME_PTRS[_currentFrame]);
+    Locator::getDisplay()->drawRGBBitmap(_x, _y, hero, HERO1_SIZE[0], HERO1_SIZE[1]);
+    if(++_currentFrame >= HERO_FRAME_COUNT) {
+      _currentFrame = 0;
+    }
+  } else if(_state == JUMPING) {
+    Locator::getDisplay()->fillRect(_x, _y, _width, _height, SKY_COLOR);
+    _y = _y + (HERO_PACE * (direction == UP ? -1 : 1));
+    Locator::getDisplay()->drawRGBBitmap(_x, _y, HERO_JUMP, _width, _height);
+    Locator::getEventBus()->broadcast(MOVE, this);
+    if (floor(_lastY - _y) >= HERO_JUMP_HEIGHT) {
+      direction = DOWN;
+    }    
+    if (_y + _height >= 48) {
+      idle();
+    }
   }
 }
 

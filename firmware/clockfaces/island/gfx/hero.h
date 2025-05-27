@@ -8,8 +8,8 @@
 #include <ImageUtils.h>
 #include <Locator.h>
 
-const uint8_t MARIO_PACE = 3;
-const uint8_t MARIO_JUMP_HEIGHT = 14;
+const uint8_t HERO_PACE = 3;
+const uint8_t HERO_JUMP_HEIGHT = 14;
 
 class Hero : public Sprite, public EventTask {
 private:
@@ -20,9 +20,9 @@ private:
   int _lastX;
   int _lastY;
 
-  const unsigned short *_sprite;
-  uint8_t _currentFrame;
+  uint8_t _currentFrame = 0;
   unsigned long lastMillis = 0;
+  uint16_t _duration = 100;
   State _state = IDLE;
   State _lastState = IDLE;
 
@@ -31,7 +31,6 @@ private:
 public:
   Hero(int x, int y);
   void init();
-  void move(Direction dir, int times);
   bool jump();
   void update();
   const char *name();

@@ -15,6 +15,7 @@ private:
 
   Direction direction;
 
+  bool _timeUpdated;
   String _text;
 
   unsigned long lastMillis = 0;
@@ -25,7 +26,7 @@ private:
 
   void idle();
   void hit();
-  void setTextBlock();
+  void setTextBlock(bool forceUpdate=false);
 
 public:
   Block(int x, int y);
