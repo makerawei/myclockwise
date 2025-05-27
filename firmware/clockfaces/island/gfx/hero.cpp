@@ -56,7 +56,7 @@ void Hero::update() {
     return;
   }
   lastMillis = millis();
-  const uint16_t *hero = (const uint16_t*)pgm_read_ptr(&HERO_FRAME_COUNT[_currentFrame]);
+  const uint16_t *hero = (const uint16_t*)pgm_read_ptr(&HERO_FRAME_PTRS[_currentFrame]);
   Locator::getDisplay()->drawRGBBitmap(_x, _y, hero, HERO1_SIZE[0], HERO1_SIZE[1]);
   if(++_currentFrame >= HERO_FRAME_COUNT) {
     _currentFrame = 0;

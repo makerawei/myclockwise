@@ -4,13 +4,12 @@ const char* FORMAT_TWO_DIGITS = "%02d";
 
 Tile ground(GROUND, 16, 13); // 地面
 Object statue(STATUE, 23, 35); // 神像
-Object cloud1(CLOUD1, 15, 11); // 云朵1
+Object cloud1(CLOUD1, 12, 11); // 云朵1
 Object cloud2(CLOUD2, 10, 9); // 云朵2
 Object roadSign(ROAD_SIGN, 12, 16); //路标
 
 Hero hero(24, 19); // 高桥名人
-//Block hourBlock(13, 8); // 小时砖块
-//Block minuteBlock(32, 8); // 分钟砖块
+Block timeBlock(13, 4); // 时间显示砖块
 
 unsigned long lastMillis = 0;
 
@@ -36,14 +35,12 @@ void Clockface::setup() {
 
   updateTime();
 
-  //hourBlock.init();
-  //minuteBlock.init();
+  timeBlock.init();
   hero.init();
 }
 
 void Clockface::update() {
   //hourBlock.update();
-  //minuteBlock.update();
   hero.update();
   if (_dateTime->getSecond() == 0 && millis() - lastMillis > 1000) {
     if(!isAlarmTaskRunning()) {

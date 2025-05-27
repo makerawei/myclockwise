@@ -6,8 +6,8 @@ Block::Block(int x, int y) {
   _x = x;
   _y = y;
   _firstY = y;
-  _width = 16;
-  _height = 16;
+  _width = 39;
+  _height = 11;
 }
 
 void Block::idle() {
