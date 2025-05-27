@@ -1,8 +1,12 @@
 #include "hero.h"
 
+const uint16_t *HERO_FRAME_PTRS[] = {HERO1, HERO2, HERO3};
+const uint8_t HERO_FRAME_COUNT = sizeof(HERO_FRAME_PTRS) / sizeof(HERO_FRAME_PTRS[0]);
+
 Hero::Hero(int x, int y) {
   _x = x;
   _y = y;
+  _currentFrame = 0;
 }
 
 void Hero::move(Direction dir, int times) {
@@ -39,7 +43,6 @@ void Hero::idle() {
     Locator::getDisplay()->fillRect(_x, _y, _width, _height, SKY_COLOR);
     _width = HERO1_SIZE[0];
     _height = HERO1_SIZE[1];
-    _sprite = HERO1;
   }
 }
 
@@ -49,12 +52,14 @@ void Hero::init() {
 }
 
 void Hero::update() {
-  if (_state == IDLE && _state != _lastState) {
-    Locator::getDisplay()->drawRGBBitmap(_x, _y, HERO1, HERO1_SIZE[0], HERO1_SIZE[1]);
-  } else if (_state == JUMPING) {
-    if (millis() - lastMillis >= 50) {
-      lastMillis = millis();
-    }
+  if (millis() - lastMillis < 100) {
+    return;
+  }
+  lastMillis = millis();
+  const uint16_t *hero = (const uint16_t*)pgm_read_ptr(&HERO_FRAME_COUNT[_currentFrame]);
+  Locator::getDisplay()->drawRGBBitmap(_x, _y, hero, HERO1_SIZE[0], HERO1_SIZE[1]);
+  if(++_currentFrame >= HERO_FRAME_COUNT) {
+    _currentFrame = 0;
   }
 }
 
@@ -64,6 +69,6 @@ void Hero::execute(EventType event, Sprite *caller) {
   }
 }
 
-const char *Hero::name() {  return "MARIO";
+const char *Hero::name() {
+  return "GaoQiaoMingRen";
 }
-

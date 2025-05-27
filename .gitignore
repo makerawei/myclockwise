@@ -13,4 +13,4 @@ sdkconfig*
 dependencies.lock
 
 clockwise.si4project/
-upload.sh
+.DS_Store

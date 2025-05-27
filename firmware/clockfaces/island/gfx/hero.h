@@ -21,6 +21,7 @@ private:
   int _lastY;
 
   const unsigned short *_sprite;
+  uint8_t _currentFrame;
   unsigned long lastMillis = 0;
   State _state = IDLE;
   State _lastState = IDLE;

@@ -56,9 +56,9 @@ void Clockface::update() {
 
 void Clockface::updateTime() {
   IClockface::updateTime();
-  Locator::getDisplay()->setCursor(48, 8);
-  Locator::getDisplay()->setTextColor(0x0000);
-  Locator::getDisplay()->print(_dateTime->getHour(FORMAT_TWO_DIGITS));
+  // Locator::getDisplay()->setCursor(48, 8);
+  // Locator::getDisplay()->setTextColor(0xa000);
+  // Locator::getDisplay()->print(_dateTime->getHour(FORMAT_TWO_DIGITS));
   //hourBlock.setText(String(_dateTime->getHour()));
   //minuteBlock.setText(String(_dateTime->getMinute(FORMAT_TWO_DIGITS)));
 }
