@@ -21,7 +21,6 @@ private:
   int _lastY;
 
   uint8_t _currentFrame = 0;
-  unsigned long lastMillis = 0;
   uint16_t _duration = 100;
   State _state = IDLE;
   State _lastState = IDLE;

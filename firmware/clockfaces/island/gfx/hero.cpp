@@ -9,6 +9,11 @@ Hero::Hero(int x, int y) {
 }
 
 bool Hero::jump() {
+  static unsigned long lastJumpMillis = 0;
+  if (millis() - lastJumpMillis < 1000) {
+    return false;
+  }
+  lastJumpMillis = millis();
   bool canJump = _state != JUMPING;
   if(!canJump) {
     return false;
@@ -44,6 +49,7 @@ void Hero::init() {
 }
 
 void Hero::update() {
+  static unsigned long lastMillis = 0;
   if (millis() - lastMillis < _duration) {
     return;
   }
