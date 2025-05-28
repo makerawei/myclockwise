@@ -9,7 +9,7 @@ Object cloud2(CLOUD2, 10, 9); // 云朵2
 Object roadSign(ROAD_SIGN, 12, 16); //路标
 
 Hero hero(24, 19); // 高桥名人
-Block timeBlock(13, 3); // 时间显示砖块
+Block timeBlock(13, 2); // 时间显示砖块
 
 unsigned long lastMillis = 0;
 

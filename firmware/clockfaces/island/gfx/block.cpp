@@ -8,7 +8,7 @@ Block::Block(int x, int y) {
   _y = y;
   _firstY = y;
   _width = 39;
-  _height = 12;
+  _height = 14;
 }
 
 void Block::idle() {
@@ -42,7 +42,7 @@ void Block::setTextBlock(bool forceUpdate) {
     const char *timeStr = _text.c_str();
     for(uint8_t i = 0; i < 4; i++) {
       const uint8_t offset = i >= 2 ? 3 : 0;
-      Locator::getDisplay()->drawRGBBitmap(1 + _x + i * NUMBER_WIDTH + offset, _y + 2, NUMBERS[timeStr[i] - '0'], NUMBER_WIDTH, NUMBER_HEIGHT);
+      Locator::getDisplay()->drawRGBBitmap(1 + _x + i * NUMBER_WIDTH + offset, _y + 4, NUMBERS[timeStr[i] - '0'], NUMBER_WIDTH, NUMBER_HEIGHT);
     }
   }
 }
