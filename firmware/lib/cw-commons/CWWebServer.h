@@ -128,9 +128,11 @@ struct ClockwiseWebServer
         clockface->externalEvent(0);
       }
     } else if(method == "POST" && path == "/format") {
-      client.println("HTTP/1.0 204 No Content");
       if(SPIFFS.format()) {
         Serial.println("format success");
+        client.println("HTTP/1.0 204 No Content");
+      } else {
+        client.println("HTTP/1.0 500 Internal Server Error");
       }
     } else if (method == "POST" && path == "/set") {
       ClockwiseParams::getInstance()->load();

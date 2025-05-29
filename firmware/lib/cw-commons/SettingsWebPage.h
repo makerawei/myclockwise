@@ -9,6 +9,7 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
 <html>
 <title>Clockwise Settings</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="shortcut icon" type="image/x-icon"
@@ -26,8 +27,17 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
     <div id="ssid" class="w3-bar-item w3-hover-blue w3-right"></div>
     <div class="w3-bar-item w3-button w3-hover-yellow w3-right" onclick="restartDevice();"><i class='fa fa-power-off'></i> Restart</div>
     <div class="w3-bar-item w3-button w3-hover-yellow w3-right" onclick="pushButton();"><i class="fa-solid fa-person-walking"></i>PushButton</div>
-    <div class="w3-bar-item w3-button w3-hover-yellow w3-right" onclick="formatSpiffs();"><i class="fa-solid fa-person-walking"></i> FormatSpiffs</div>
+    <div class="w3-bar-item w3-button w3-hover-yellow w3-right" onclick="formatSpiffs();"><i class="fa-solid fa-person-walking"></i> FormatSPIFFS</div>
     <div id="status" class="w3-bar-item w3-green" style="display:none"><i class='fa fa-floppy-o'></i> Saved! Restart your device</div>
+  </div>
+  
+  <!-- 模态对话框 -->
+  <div id="loadingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 20px; border-radius: 5px; text-align: center;">
+      <h3>正在格式化SPIFFS文件系统，请稍候...</h3>
+      <p>剩余时间: <span id="countdown">20</span> 秒</p>
+      <button id="hideBtn" style="padding: 5px 10px; margin-top: 10px;">后台执行</button>
+    </div>
   </div>
 
   <div class="w3-row-padding w3-padding">
@@ -243,11 +253,54 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
       xhr.open('POST', '/button');
       xhr.send();
     }
+    
 
     function formatSpiffs() {
+      const modal = document.getElementById("loadingModal");
+      const countdownEl = document.getElementById("countdown");
+      const hideBtn = document.getElementById("hideBtn");
+      let countdown = 10;
+      let countdownInterval;
+      let isRequestCompleted = false; // 标记请求是否完成
+      
+      function closeModal() {
+        clearInterval(countdownInterval); // 清除倒计时
+        modal.style.display = "none";
+      }
+
+      function showModal() {
+        modal.style.display = "flex";
+        countdownEl.textContent = countdown;        
+        countdownInterval = setInterval(() => {
+          countdown--;
+          countdownEl.textContent = countdown;
+          if (countdown <= 0 || isRequestCompleted) {
+            closeModal();
+          }
+        }, 1000);
+      }
+      
+      hideBtn.addEventListener("click", () => {
+        closeModal();
+      });
+
       const xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        isRequestCompleted = true;
+        if(xhr.status === 204) {
+          alert("Format SPIFFS success");
+        } else {
+          alert("Format SPIFFS error!");
+        }
+      };
+      xhr.onerror = function() {
+        isRequestCompleted = true;
+        closeModal();
+        alert("请求错误，请重启设备后再试");
+      };
       xhr.open('POST', '/format');
       xhr.send();
+      showModal();
     }
     //Local
     //createCards({ "displayBright": 30, "swapBlueGreen": 1, "use24hFormat": 0, "timeZone": "Europe/Lisbon", "ntpServer": "pool.ntp.org", "wifiSsid": "test", "autoBrightMin":0, "autoBrightMax":800, "ldrPin":35, "cw_fw_version":"1.2.2", "clockface_name":"cw-cf-0x07", "canvasServer":"raw.githubusercontent.com", "canvasFile":"star-wars.json" });
