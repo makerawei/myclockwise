@@ -6,13 +6,20 @@
 #include <driver/i2s.h>
 
 #define AUDOI_I2S_PORT I2S_NUM_0
+#define MIC_I2S_PORT I2S_NUM_1
 #define WAV_HEAD_SIZE 44
 #define DMA_BUF_LEN 1024
 #define I2S_SAMPLE_RATE 24000
+// 麦克风
+#define I2S_SD  34
+#define I2S_WS  21
+#define I2S_SCK 22
+// 扬声器
 #define I2S_DOUT 2
 #define I2S_BCLK 32
 #define I2S_LRC 33
 
+#define WAV_HEADER_SIZE 44
 #define SUCCESS_SOUND_URL "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/success.wav"
 
 #define WRITE_TO_FILE(file, buffer, size) do { \
@@ -30,55 +37,72 @@ struct AudioHelper {
     return &base;
   }
 
+  bool audioInit() {
+    i2s_config_t i2s_config = {
+      .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
+      .sample_rate = I2S_SAMPLE_RATE,
+      .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
+      .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
+      .communication_format = (i2s_comm_format_t)I2S_COMM_FORMAT_STAND_I2S,
+      .intr_alloc_flags = 0,
+      .dma_buf_count = 4,
+      .dma_buf_len = DMA_BUF_LEN,
+      .use_apll = false,
+  
+      .tx_desc_auto_clear = true,         // 自动清除DMA描述符
+      .fixed_mclk = 0,                    // 不固定MCLK
+      .mclk_multiple = I2S_MCLK_MULTIPLE_256,  // 主时钟倍频
+      .bits_per_chan = I2S_BITS_PER_CHAN_16BIT // 每个通道的位宽
+    };
+    i2s_pin_config_t pin_config = {
+      .bck_io_num = I2S_BCLK,
+      .ws_io_num = I2S_LRC,
+      .data_out_num = I2S_DOUT,
+      .data_in_num = I2S_PIN_NO_CHANGE
+    };
+    pin_config.mck_io_num = I2S_PIN_NO_CHANGE;
+    esp_err_t i2s_install_status = i2s_driver_install(AUDOI_I2S_PORT, &i2s_config, 0, NULL);
+    esp_err_t i2s_pin_status = i2s_set_pin(AUDOI_I2S_PORT, &pin_config);
+    i2s_set_sample_rates(AUDOI_I2S_PORT, I2S_SAMPLE_RATE);
+    bool ret = i2s_install_status == ESP_OK && i2s_pin_status == ESP_OK;
+    Serial.println(ret ? "I2S audio init success" : "I2S audio init failed");
+    return ret;
+  }
+
+  bool micInit() {
+    const i2s_config_t i2s_config = {
+      .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX),
+      .sample_rate = I2S_SAMPLE_RATE,
+      .bits_per_sample = i2s_bits_per_sample_t(16),
+      .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
+      .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_STAND_I2S | I2S_COMM_FORMAT_I2S_MSB),
+      .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+      .dma_buf_count = 4,
+      .dma_buf_len = DMA_BUF_LEN,
+      .use_apll = false
+    };
+    const i2s_pin_config_t pin_config = {
+      .bck_io_num = I2S_SCK,
+      .ws_io_num = I2S_WS,
+      .data_out_num = -1,
+      .data_in_num = I2S_SD
+    };
+    i2s_driver_install(MIC_I2S_PORT, &i2s_config, 0, NULL);
+    i2s_set_pin(MIC_I2S_PORT, &pin_config);  
+    esp_err_t status = i2s_start(MIC_I2S_PORT);
+    bool ret = status == ESP_OK;
+    Serial.println(ret ? "I2S mic init success" : "I2S audio init failed");
+    return ret;
+  }
+  
   bool begin() {
     if (isInited) {
       return true;
     }
-
     spiffsInited = SPIFFS.begin(true);
-    if(!spiffsInited){
-      Serial.println("SPIFFS init failed");
-    } else {
-      Serial.println("SPIFFS init success");
-    }
-
-    i2s_config_t i2s_config = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
-        .sample_rate = I2S_SAMPLE_RATE,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-        .communication_format = (i2s_comm_format_t)I2S_COMM_FORMAT_STAND_I2S,
-        .intr_alloc_flags = 0,
-        .dma_buf_count = 4,
-        .dma_buf_len = DMA_BUF_LEN,
-        .use_apll = false,
-
-        .tx_desc_auto_clear = true,         // 自动清除DMA描述符
-        .fixed_mclk = 0,                    // 不固定MCLK
-        .mclk_multiple = I2S_MCLK_MULTIPLE_256,  // 主时钟倍频
-        .bits_per_chan = I2S_BITS_PER_CHAN_16BIT // 每个通道的位宽
-    };    
-    esp_err_t i2s_install_status =
-        i2s_driver_install(AUDOI_I2S_PORT, &i2s_config, 0, NULL);
-    
-    i2s_pin_config_t pin_config = {.bck_io_num = I2S_BCLK,
-                                   .ws_io_num = I2S_LRC,
-                                   .data_out_num = I2S_DOUT,
-                                   .data_in_num = I2S_PIN_NO_CHANGE
-    };
-    pin_config.mck_io_num = I2S_PIN_NO_CHANGE;
-    esp_err_t i2s_pin_status = i2s_set_pin(AUDOI_I2S_PORT, &pin_config);
-    i2s_set_sample_rates(AUDOI_I2S_PORT, I2S_SAMPLE_RATE);
-
-    bool ret = i2s_install_status == ESP_OK && i2s_pin_status == ESP_OK;
-    if (ret) {
-      Serial.println("I2S audio init success");
-      isInited = true;
-    } else {
-      Serial.println("I2S audio init failed");
-    }
-
-    return ret;
+    Serial.println(spiffsInited ? "SPIFFS init success" : "SPIFFS init failed");
+    isInited = audioInit() && micInit();
+    return isInited;
   }
 
   static uint32_t url_hash(const char *str) {
@@ -255,5 +279,53 @@ struct AudioHelper {
     file.close();
     Serial.println("play ok");
     return true;
+  }
+
+  void buildWavHeader(uint8_t* header, int wavSize){
+    header[0] = 'R';
+    header[1] = 'I';
+    header[2] = 'F';
+    header[3] = 'F';
+    unsigned int fileSize = wavSize + WAV_HEADER_SIZE - 8;
+    header[4] = (uint8_t)(fileSize & 0xFF);
+    header[5] = (uint8_t)((fileSize >> 8) & 0xFF);
+    header[6] = (uint8_t)((fileSize >> 16) & 0xFF);
+    header[7] = (uint8_t)((fileSize >> 24) & 0xFF);
+    header[8] = 'W';
+    header[9] = 'A';
+    header[10] = 'V';
+    header[11] = 'E';
+    header[12] = 'f';
+    header[13] = 'm';
+    header[14] = 't';
+    header[15] = ' ';
+    header[16] = 0x10;
+    header[17] = 0x00;
+    header[18] = 0x00;
+    header[19] = 0x00;
+    header[20] = 0x01;
+    header[21] = 0x00;
+    header[22] = 0x01;
+    header[23] = 0x00;
+    header[24] = 0x80;
+    header[25] = 0x3E;
+    header[26] = 0x00;
+    header[27] = 0x00;
+    header[28] = 0x00;
+    header[29] = 0x7D;
+    header[30] = 0x01;
+    header[31] = 0x00;
+    header[32] = 0x02;
+    header[33] = 0x00;
+    header[34] = 0x10;
+    header[35] = 0x00;
+    header[36] = 'd';
+    header[37] = 'a';
+    header[38] = 't';
+    header[39] = 'a';
+    header[40] = (uint8_t)(wavSize & 0xFF);
+    header[41] = (uint8_t)((wavSize >> 8) & 0xFF);
+    header[42] = (uint8_t)((wavSize >> 16) & 0xFF);
+    header[43] = (uint8_t)((wavSize >> 24) & 0xFF);
   }
 };
