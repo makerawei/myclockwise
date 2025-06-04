@@ -9,19 +9,14 @@
 #define I2S_WS  21
 #define I2S_SCK 22
 #define RECORD_DMA_BUF_LEN 1024
-#define MIC_I2S_PORT I2S_NUM_1
+#define MIC_I2S_PORT I2S_NUM_1     // 因为驱动屏幕已经占用了I2S_NUM_1通道，且扬声器占用了I2S_NUM_0通道。已经没有更多I2S通道可用了，导致这里使用I2S_NUM_1是不能正常工作的
 #define RECORD_I2S_SAMPLE_RATE   16000
 #define WAV_FILE "/record1.wav"
 #define WAV_HEADER_SIZE   44
 
-volatile bool recoding = false;
+volatile bool recording = false;
 
 struct RecordController {
-
-  RecordController() {
-
-  }
-  
   static RecordController *getInstance() {
     static RecordController base;
     return &base;
@@ -60,7 +55,7 @@ struct RecordController {
   }
 
   bool isRecording() {
-    return recoding;
+    return recording;
   }
   
   static void buildWavHeader(uint8_t* header, int wavSize){
@@ -122,7 +117,7 @@ struct RecordController {
 
     Serial.println("===> recording...");
     fp.seek(WAV_HEADER_SIZE);
-    while(recoding) {
+    while(recording) {
       size_t size = 0;
       esp_err_t ret = i2s_read(MIC_I2S_PORT, pcmBuffer, RECORD_DMA_BUF_LEN, &size, pdMS_TO_TICKS(5));
       if (ret != ESP_OK ) {
@@ -147,12 +142,12 @@ struct RecordController {
     fp.close();
     Serial.printf("record finished, audio size is %d\n", audioSize);
 end:
-    recoding = false;
+    recording = false;
     vTaskDelete(NULL);
   }
 
   void stopRecord() {
-    recoding = false;
+    recording = false;
   }
   
   bool startRecord() {
@@ -167,8 +162,8 @@ end:
       0
     );
 
-    recoding = handle != NULL;
-    return recoding;
+    recording = handle != NULL;
+    return recording;
   }
 };
 
