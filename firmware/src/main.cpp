@@ -7,21 +7,34 @@
 #include <StatusController.h>
 #include <AudioHelper.h>
 #include <DisplayController.h>
+#include <ButtonController.h>
 
 #define ESP32_LED_BUILTIN 2
-#define USER_BUTTON_PIN 36
-#define BUTTON_DEBOUNCE_DELAY 200
 
 Clockface *clockface;
 WiFiController wifi;
+/*
 volatile bool buttonPressed = false;
 volatile unsigned long lastDebounceTime = 0;
+*/
+
+void onButtonClicked() {
+  clockface->externalEvent(0);
+}
+
+void onButtonLongPressStart() {
+  Serial.println("button long press start");
+}
+
+void onButtonLongPressStop() {
+  Serial.println("button long press stop");
+}
 
 void setup() {
   Serial.begin(115200);
   pinMode(ESP32_LED_BUILTIN, OUTPUT);
-  pinMode(USER_BUTTON_PIN, INPUT);
   
+  ButtonController::getInstance()->begin(onButtonClicked, onButtonLongPressStart, onButtonLongPressStop);
   AudioHelper::getInstance()->begin();
   StatusController::getInstance()->blink_led(5, 100);
 
@@ -50,6 +63,8 @@ void setup() {
   }
 }
 
+
+/*
 void onButtonEvent() {
   bool value = digitalRead(USER_BUTTON_PIN);
   if(!value) {
@@ -67,6 +82,7 @@ void onButtonEvent() {
     }
   }
 }
+*/
 
 void loop() {
   /*
@@ -75,9 +91,10 @@ void loop() {
     ClockwiseWebServer::getInstance()->handleHttpRequest();
   }
   */
+  ButtonController::getInstance()->loop();
   wifi.handleImprovWiFi();
   if(wifi.connectionSucessfulOnce) {
     clockface->loop();
   }
-  onButtonEvent();
+  //onButtonEvent();
 }
