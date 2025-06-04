@@ -8,6 +8,7 @@
 #include <AudioHelper.h>
 #include <DisplayController.h>
 #include <ButtonController.h>
+#include <RecordController.h>
 
 #define ESP32_LED_BUILTIN 2
 
@@ -24,10 +25,12 @@ void onButtonClicked() {
 
 void onButtonLongPressStart() {
   Serial.println("button long press start");
+  RecordController::getInstance()->startRecord();
 }
 
 void onButtonLongPressStop() {
   Serial.println("button long press stop");
+  RecordController::getInstance()->stopRecord();
 }
 
 void setup() {
@@ -35,6 +38,7 @@ void setup() {
   pinMode(ESP32_LED_BUILTIN, OUTPUT);
   
   ButtonController::getInstance()->begin(onButtonClicked, onButtonLongPressStart, onButtonLongPressStop);
+  RecordController::getInstance()->begin();
   AudioHelper::getInstance()->begin();
   StatusController::getInstance()->blink_led(5, 100);
 
