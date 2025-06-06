@@ -4,13 +4,6 @@
 #include <SPIFFS.h>
 #include <driver/i2s.h>
 
-// 麦克风
-#define I2S_SD  34
-#define I2S_WS  21
-#define I2S_SCK 22
-#define RECORD_DMA_BUF_LEN 1024
-#define MIC_I2S_PORT I2S_NUM_1     // 因为驱动屏幕已经占用了I2S_NUM_1通道，且扬声器占用了I2S_NUM_0通道。已经没有更多I2S通道可用了，导致这里使用I2S_NUM_1是不能正常工作的
-#define RECORD_I2S_SAMPLE_RATE   16000
 #define WAV_FILE "/record1.wav"
 #define WAV_HEADER_SIZE   44
 
@@ -21,37 +14,9 @@ struct RecordController {
     static RecordController base;
     return &base;
   }
-  
-  bool micInit() {
-    const i2s_config_t i2s_config = {
-      .mode = i2s_mode_t(I2S_MODE_RX),
-      .sample_rate = RECORD_I2S_SAMPLE_RATE,
-      .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-      .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-      .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-      .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-      .dma_buf_count = 4,
-      .dma_buf_len = RECORD_DMA_BUF_LEN,
-      .use_apll = false
-    };
-    const i2s_pin_config_t pin_config = {
-      .bck_io_num = I2S_SCK,
-      .ws_io_num = I2S_WS,
-      .data_out_num = -1,
-      .data_in_num = I2S_SD
-    };
-    i2s_driver_install(MIC_I2S_PORT, &i2s_config, 0, NULL);
-    i2s_set_pin(MIC_I2S_PORT, &pin_config);  
-    return true;
-    //i2s_start一般不需要手动执行，在i2s_driver_install成功后，外设会自动开始工作
-    //esp_err_t status = i2s_start(MIC_I2S_PORT);
-    //bool ret = status == ESP_OK;
-    //Serial.println(ret ? "I2S mic init success" : "I2S audio init failed");
-    //return ret;
-  }
 
   void begin() {
-    micInit();
+
   }
 
   bool isRecording() {
@@ -108,7 +73,7 @@ struct RecordController {
 
   static void recordTask(void *param) {
     size_t audioSize = 0;    
-    int16_t pcmBuffer[RECORD_DMA_BUF_LEN];
+    int16_t pcmBuffer[DMA_BUF_LEN];
     File fp = SPIFFS.open(WAV_FILE, FILE_WRITE);
     if(!fp) {
       Serial.println("fail to create file");
@@ -116,16 +81,19 @@ struct RecordController {
     }
 
     Serial.println("===> recording...");
-    fp.seek(WAV_HEADER_SIZE);
+    fp.seek(WAV_HEADER_SIZE);    
+    I2SController::getInstance()->switchToRx();
+    I2SController::getInstance()->switchLock(); // 等待switchToRx切换完成
     while(recording) {
       size_t size = 0;
-      esp_err_t ret = i2s_read(MIC_I2S_PORT, pcmBuffer, RECORD_DMA_BUF_LEN, &size, pdMS_TO_TICKS(5));
+      esp_err_t ret = i2s_read(I2S_PORT, pcmBuffer, DMA_BUF_LEN, &size, pdMS_TO_TICKS(5));
       if (ret != ESP_OK ) {
         if(ret == ESP_ERR_INVALID_STATE) {
-          i2s_stop(MIC_I2S_PORT);
-          i2s_start(MIC_I2S_PORT); // 尝试恢复
+          i2s_stop(I2S_PORT);
+          i2s_start(I2S_PORT); // 尝试恢复
         } else {
-          break;
+          Serial.printf("i2s_read error:%d\n", ret);
+          //break;
         }
       } else if(size <= 0) {
         vTaskDelay(1);
@@ -134,7 +102,7 @@ struct RecordController {
         audioSize += size;
       }
     }
-
+    I2SController::getInstance()->switchUnlock();
     uint8_t header[WAV_HEADER_SIZE];
     buildWavHeader(header, audioSize);
     fp.seek(0);
@@ -143,10 +111,13 @@ struct RecordController {
     Serial.printf("record finished, audio size is %d\n", audioSize);
 end:
     recording = false;
+    // 录音完成后需要主动切换到音频播放模式
+    I2SController::getInstance()->switchToTx();
     vTaskDelete(NULL);
   }
 
   void stopRecord() {
+    Serial.println("user stop record");
     recording = false;
   }
   

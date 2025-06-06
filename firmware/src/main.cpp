@@ -25,12 +25,12 @@ void onButtonClicked() {
 
 void onButtonLongPressStart() {
   Serial.println("button long press start");
-  //RecordController::getInstance()->startRecord();
+  RecordController::getInstance()->startRecord();
 }
 
 void onButtonLongPressStop() {
   Serial.println("button long press stop");
-  //RecordController::getInstance()->stopRecord();
+  RecordController::getInstance()->stopRecord();
 }
 
 void setup() {

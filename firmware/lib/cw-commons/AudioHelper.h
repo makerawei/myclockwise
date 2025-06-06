@@ -4,17 +4,9 @@
 #include <HTTPClient.h>
 #include <SPIFFS.h>
 #include <driver/i2s.h>
+#include <I2SController.h>
 
-#define AUDOI_I2S_PORT I2S_NUM_0
 #define WAV_HEAD_SIZE 44
-#define DMA_BUF_LEN 1024
-#define I2S_SAMPLE_RATE 24000
-// 扬声器
-#define I2S_DOUT 2
-#define I2S_BCLK 32
-#define I2S_LRC 33
-
-#define WAV_HEADER_SIZE 44
 #define SUCCESS_SOUND_URL "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/success.wav"
 
 #define WRITE_TO_FILE(file, buffer, size) do { \
@@ -31,38 +23,6 @@ struct AudioHelper {
     static AudioHelper base;
     return &base;
   }
-
-  bool audioInit() {
-    i2s_config_t i2s_config = {
-      .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
-      .sample_rate = I2S_SAMPLE_RATE,
-      .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-      .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-      .communication_format = (i2s_comm_format_t)I2S_COMM_FORMAT_STAND_I2S,
-      .intr_alloc_flags = 0,
-      .dma_buf_count = 4,
-      .dma_buf_len = DMA_BUF_LEN,
-      .use_apll = false,
-  
-      .tx_desc_auto_clear = true,         // 自动清除DMA描述符
-      .fixed_mclk = 0,                    // 不固定MCLK
-      .mclk_multiple = I2S_MCLK_MULTIPLE_256,  // 主时钟倍频
-      .bits_per_chan = I2S_BITS_PER_CHAN_16BIT // 每个通道的位宽
-    };
-    i2s_pin_config_t pin_config = {
-      .bck_io_num = I2S_BCLK,
-      .ws_io_num = I2S_LRC,
-      .data_out_num = I2S_DOUT,
-      .data_in_num = I2S_PIN_NO_CHANGE
-    };
-    pin_config.mck_io_num = I2S_PIN_NO_CHANGE;
-    esp_err_t i2s_install_status = i2s_driver_install(AUDOI_I2S_PORT, &i2s_config, 0, NULL);
-    esp_err_t i2s_pin_status = i2s_set_pin(AUDOI_I2S_PORT, &pin_config);
-    i2s_set_sample_rates(AUDOI_I2S_PORT, I2S_SAMPLE_RATE);
-    bool ret = i2s_install_status == ESP_OK && i2s_pin_status == ESP_OK;
-    Serial.println(ret ? "I2S audio init success" : "I2S audio init failed");
-    return ret;
-  }
   
   bool begin() {
     if (isInited) {
@@ -70,7 +30,6 @@ struct AudioHelper {
     }
     spiffsInited = SPIFFS.begin(true);
     Serial.println(spiffsInited ? "SPIFFS init success" : "SPIFFS init failed");
-    isInited = audioInit();
     return isInited;
   }
 
@@ -89,12 +48,12 @@ struct AudioHelper {
   }
 
   void stop() {
-    i2s_zero_dma_buffer(AUDOI_I2S_PORT);  // 清空DMA缓存
+    i2s_zero_dma_buffer(I2S_PORT);  // 清空DMA缓存
     const int zeroSamples = 1024;
     int32_t zeroData = 0;
     for (int i = 0; i < zeroSamples; i++) {
       size_t bytesWritten = 0;
-      i2s_write(AUDOI_I2S_PORT, &zeroData, sizeof(zeroData), &bytesWritten,
+      i2s_write(I2S_PORT, &zeroData, sizeof(zeroData), &bytesWritten,
                 portMAX_DELAY);
     }
     Serial.println("audio stopped");
@@ -108,18 +67,18 @@ struct AudioHelper {
   // 该函数可能i2s_stop或i2s_start时卡住，暂时不要使用
   void emergencyMute() {
     Serial.println("===> emergency mute");
-    i2s_stop(AUDOI_I2S_PORT);
+    i2s_stop(I2S_PORT);
     // I2S0.conf.tx_fifo_reset = 1;
     // I2S0.conf.tx_fifo_reset = 0;
-    i2s_zero_dma_buffer(AUDOI_I2S_PORT);
-    i2s_start(AUDOI_I2S_PORT);
+    i2s_zero_dma_buffer(I2S_PORT);
+    i2s_start(I2S_PORT);
     vTaskDelay(pdMS_TO_TICKS(20));
   }
 
   void write(const int16_t *buffer, const size_t size) {
     for (size_t i = 0; i < size / sizeof(int16_t); i++) {
       size_t bytesWritten = 0;
-      i2s_write(AUDOI_I2S_PORT, &buffer[i], sizeof(buffer[i]), &bytesWritten,
+      i2s_write(I2S_PORT, &buffer[i], sizeof(buffer[i]), &bytesWritten,
                 portMAX_DELAY);
     }
   }
@@ -152,6 +111,9 @@ struct AudioHelper {
 
   void play(String url) {
     char filePath[32] = {0};
+    if(!I2SController::getInstance()->isTxMode()) { // 如果正在录音则不播放音频
+      return;
+    }
     snprintf(filePath, sizeof(filePath), "/%d.wav", url_hash(url.c_str()));
     if(!play(filePath)) {
       download(url);
