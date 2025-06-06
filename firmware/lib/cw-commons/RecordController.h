@@ -72,19 +72,9 @@ struct RecordController {
     header[43] = (uint8_t)((wavSize >> 24) & 0xFF);
   }
 
-  static void adcDataScale(uint8_t *dstBuff, uint8_t* srcBuff, uint32_t len) {
-    uint32_t j = 0;
-    uint32_t dacValue = 0;
-    for (int i = 0; i < len; i += 2) {
-      dacValue = ((((uint16_t) (srcBuff[i + 1] & 0xf) << 8) | ((srcBuff[i + 0]))));
-      dstBuff[j++] = 0;
-      dstBuff[j++] = dacValue * 256 / 2048;
-    }
-  }
 
   static void recordTask(void *param) {
     size_t audioSize = 0;
-    int16_t audioBuffer[DMA_BUF_LEN] = {0};
     int16_t pcmBuffer[DMA_BUF_LEN];
     File fp = SPIFFS.open(WAV_FILE, FILE_WRITE);
     if(!fp) {
@@ -110,7 +100,6 @@ struct RecordController {
       } else if(size <= 0) {
         vTaskDelay(1);
       } else {
-        //adcDataScale((uint8_t *)audioBuffer, (uint8_t *)pcmBuffer, size);
         fp.write((uint8_t *)pcmBuffer, size);
         audioSize += size;
       }
