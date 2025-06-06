@@ -3,6 +3,7 @@
 #include <CWPreferences.h>
 #include <SPIFFS.h>
 #include <driver/i2s.h>
+#include "ChatController.h"
 
 #define WAV_FILE "/record1.wav"
 #define WAV_HEADER_SIZE   44
@@ -71,8 +72,19 @@ struct RecordController {
     header[43] = (uint8_t)((wavSize >> 24) & 0xFF);
   }
 
+  static void adcDataScale(uint8_t *dstBuff, uint8_t* srcBuff, uint32_t len) {
+    uint32_t j = 0;
+    uint32_t dacValue = 0;
+    for (int i = 0; i < len; i += 2) {
+      dacValue = ((((uint16_t) (srcBuff[i + 1] & 0xf) << 8) | ((srcBuff[i + 0]))));
+      dstBuff[j++] = 0;
+      dstBuff[j++] = dacValue * 256 / 2048;
+    }
+  }
+
   static void recordTask(void *param) {
-    size_t audioSize = 0;    
+    size_t audioSize = 0;
+    int16_t audioBuffer[DMA_BUF_LEN] = {0};
     int16_t pcmBuffer[DMA_BUF_LEN];
     File fp = SPIFFS.open(WAV_FILE, FILE_WRITE);
     if(!fp) {
@@ -86,18 +98,19 @@ struct RecordController {
     I2SController::getInstance()->switchLock(); // 等待switchToRx切换完成
     while(recording) {
       size_t size = 0;
-      esp_err_t ret = i2s_read(I2S_PORT, pcmBuffer, DMA_BUF_LEN, &size, pdMS_TO_TICKS(5));
+      esp_err_t ret = i2s_read(I2S_PORT, pcmBuffer, DMA_BUF_LEN, &size, pdMS_TO_TICKS(10)); //);portMAX_DELAY
       if (ret != ESP_OK ) {
         if(ret == ESP_ERR_INVALID_STATE) {
           i2s_stop(I2S_PORT);
           i2s_start(I2S_PORT); // 尝试恢复
         } else {
           Serial.printf("i2s_read error:%d\n", ret);
-          //break;
+          break;
         }
       } else if(size <= 0) {
         vTaskDelay(1);
       } else {
+        //adcDataScale((uint8_t *)audioBuffer, (uint8_t *)pcmBuffer, size);
         fp.write((uint8_t *)pcmBuffer, size);
         audioSize += size;
       }
@@ -109,6 +122,7 @@ struct RecordController {
     fp.write(header, WAV_HEADER_SIZE);
     fp.close();
     Serial.printf("record finished, audio size is %d\n", audioSize);
+    ChatController::getInstance()->chatToServer();
 end:
     recording = false;
     // 录音完成后需要主动切换到音频播放模式
@@ -128,9 +142,9 @@ end:
       "recordTask", 
       10240,
       NULL,
-      1, 
+      2, 
       &handle,
-      0
+      1
     );
 
     recording = handle != NULL;

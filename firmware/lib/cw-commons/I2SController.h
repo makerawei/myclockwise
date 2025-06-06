@@ -32,11 +32,11 @@ struct I2SController {
     .intr_alloc_flags = 0,
     .dma_buf_count = 4,
     .dma_buf_len = DMA_BUF_LEN,
-    .use_apll = false,
+    .use_apll = false/*,
     .tx_desc_auto_clear = true,         // 自动清除DMA描述符
     .fixed_mclk = 0,                    // 不固定MCLK
     .mclk_multiple = I2S_MCLK_MULTIPLE_256,  // 主时钟倍频
-    .bits_per_chan = I2S_BITS_PER_CHAN_16BIT // 每个通道的位宽
+    .bits_per_chan = I2S_BITS_PER_CHAN_16BIT // 每个通道的位宽 */
   };
     
   i2s_pin_config_t pin_config_tx = {
@@ -50,9 +50,9 @@ struct I2SController {
   i2s_config_t i2s_config_rx = {
     .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX),
     .sample_rate = MIC_I2S_SAMPLE_RATE,
-    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
+    .bits_per_sample = i2s_bits_per_sample_t(16),
     .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-    .communication_format = I2S_COMM_FORMAT_STAND_I2S,
+    .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_STAND_I2S | I2S_COMM_FORMAT_I2S_MSB),
     .intr_alloc_flags = 0,
     .dma_buf_count = 4,
     .dma_buf_len = DMA_BUF_LEN,
