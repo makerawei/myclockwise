@@ -3,9 +3,9 @@
 #include <SPIFFS.h>
 #include <HTTPClient.h>
 
-#define DEFAULT_TIMEOUT 100000 // ms
+#define DEFAULT_TIMEOUT 4000 // ms
 #ifndef WAV_FILE
-#define WAV_FILE "/record1.wav"
+#define WAV_FILE "/record2.wav"
 #endif
 
 struct ChatController {

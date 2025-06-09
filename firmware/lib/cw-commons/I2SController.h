@@ -50,11 +50,11 @@ struct I2SController {
   i2s_config_t i2s_config_rx = {
     .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX),
     .sample_rate = MIC_I2S_SAMPLE_RATE,
-    .bits_per_sample = i2s_bits_per_sample_t(16),
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
     .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
     .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_STAND_I2S | I2S_COMM_FORMAT_I2S_MSB),
     .intr_alloc_flags = 0,
-    .dma_buf_count = 4,
+    .dma_buf_count = 8,
     .dma_buf_len = DMA_BUF_LEN,
     .use_apll = false
   };
@@ -112,6 +112,7 @@ struct I2SController {
     i2s_driver_uninstall(I2S_PORT);
     i2s_driver_install(I2S_PORT, &i2s_config_rx, 0, NULL);
     i2s_set_pin(I2S_PORT, &pin_config_rx);
+    i2s_set_sample_rates(I2S_PORT, MIC_I2S_SAMPLE_RATE);
     _txMode = false;
     vTaskDelay(pdMS_TO_TICKS(10));
     xSemaphoreGive(i2s_switch_sema);
