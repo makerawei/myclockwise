@@ -5,7 +5,7 @@
 
 #define DEFAULT_TIMEOUT 4000 // ms
 #ifndef WAV_FILE
-#define WAV_FILE "/record2.wav"
+#define WAV_FILE "/record3.wav"
 #endif
 
 struct ChatController {

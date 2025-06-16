@@ -5,7 +5,7 @@
 #include <driver/i2s.h>
 #include "ChatController.h"
 
-#define WAV_FILE "/record2.wav"
+#define WAV_FILE "/record3.wav"
 #define WAV_HEADER_SIZE   44
 
 volatile bool recording = false;
@@ -73,9 +73,22 @@ struct RecordController {
   }
 
 
+  static void dataScale(uint8_t * d_buff, uint8_t* s_buff, uint32_t len) {
+    uint32_t j = 0;
+    uint32_t dac_value = 0;
+    for (int i = 0; i < len; i += 2) {
+      dac_value = ((((uint16_t) (s_buff[i + 1] & 0xf) << 8) | ((s_buff[i + 0]))));
+      d_buff[j++] = 0;
+      d_buff[j++] = dac_value * 256 / 4096;
+    }
+  }
+
   static void recordTask(void *param) {
     size_t audioSize = 0;
-    int32_t pcmBuffer[DMA_BUF_LEN] = {0};
+    char pcmBuffer[DMA_BUF_LEN] = {0};
+    uint8_t wavBuffer[DMA_BUF_LEN] = {0};
+    
+    SPIFFS.remove(WAV_FILE);
     File fp = SPIFFS.open(WAV_FILE, FILE_WRITE);
     if(!fp) {
       Serial.println("fail to create file");
@@ -88,7 +101,7 @@ struct RecordController {
     I2SController::getInstance()->switchLock(); // 等待switchToRx切换完成
     while(recording) {
       size_t size = 0;
-      esp_err_t ret = i2s_read(I2S_PORT, pcmBuffer, DMA_BUF_LEN / sizeof(int32_t), &size, portMAX_DELAY);
+      esp_err_t ret = i2s_read(I2S_PORT, pcmBuffer, DMA_BUF_LEN, &size, portMAX_DELAY);
       if (ret != ESP_OK ) {
         if(ret == ESP_ERR_INVALID_STATE) {
           i2s_stop(I2S_PORT);
@@ -100,7 +113,8 @@ struct RecordController {
       } else if(size <= 0) {
         vTaskDelay(1);
       } else {
-        fp.write((uint8_t *)pcmBuffer, size);
+        dataScale(wavBuffer, (uint8_t*)pcmBuffer, size);
+        fp.write(wavBuffer, size);
         audioSize += size;
       }
     }
