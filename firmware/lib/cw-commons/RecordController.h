@@ -85,8 +85,8 @@ struct RecordController {
 
   static void recordTask(void *param) {
     size_t audioSize = 0;
-    char pcmBuffer[DMA_BUF_LEN] = {0};
-    uint8_t wavBuffer[DMA_BUF_LEN] = {0};
+    int16_t pcmBuffer[DMA_BUF_LEN] = {0};
+    int16_t wavBuffer[DMA_BUF_LEN] = {0};
     
     SPIFFS.remove(WAV_FILE);
     File fp = SPIFFS.open(WAV_FILE, FILE_WRITE);
@@ -101,7 +101,7 @@ struct RecordController {
     I2SController::getInstance()->switchLock(); // 等待switchToRx切换完成
     while(recording) {
       size_t size = 0;
-      esp_err_t ret = i2s_read(I2S_PORT, pcmBuffer, DMA_BUF_LEN, &size, portMAX_DELAY);
+      esp_err_t ret = i2s_read(I2S_PORT, pcmBuffer, DMA_BUF_LEN / sizeof(pcmBuffer[0]), &size, portMAX_DELAY); // pdMS_TO_TICKS(10)
       if (ret != ESP_OK ) {
         if(ret == ESP_ERR_INVALID_STATE) {
           i2s_stop(I2S_PORT);
@@ -113,8 +113,8 @@ struct RecordController {
       } else if(size <= 0) {
         vTaskDelay(1);
       } else {
-        dataScale(wavBuffer, (uint8_t*)pcmBuffer, size);
-        fp.write(wavBuffer, size);
+        dataScale((uint8_t*)wavBuffer, (uint8_t*)pcmBuffer, size);
+        fp.write((uint8_t *)wavBuffer, size);
         audioSize += size;
       }
     }
@@ -143,7 +143,7 @@ end:
     xTaskCreatePinnedToCore(
       recordTask,
       "recordTask", 
-      10240,
+      8 * 1024,
       NULL,
       2, 
       &handle,
