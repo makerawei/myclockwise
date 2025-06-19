@@ -5,7 +5,7 @@
 #include <ESP32Time.h>
 #include <WiFi.h>
 
-#define MAX_ALARM_CLOCK_COUNT 5
+#define MAX_ALARM_CLOCK_COUNT 10
 #define MAX_ALARM_DURATION_MS (60 * 1000)
 
 typedef struct {
@@ -25,6 +25,9 @@ private:
   bool use24hFormat = true;
   int alarmClockCount = 0;
   AlarmClock alarmClocks[MAX_ALARM_CLOCK_COUNT];
+
+  
+  bool parseHourAndMunite(const char *timeStr, int *hour, int *munite);
   
 public:
   static CWDateTime *getInstance() {
@@ -54,4 +57,5 @@ public:
   bool setAlarm(const char *alarmClockStr); // 格式：HH:MM 多个时间以空格间隔，最多设置5个，示例：08:00 12:00 14:30
   int checkAlarm();
   void resetAlarm(const int index);
+  bool deleteAlarm(const char *timeStr, const uint8_t deltaMin=0);
 };

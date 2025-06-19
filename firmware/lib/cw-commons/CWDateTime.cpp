@@ -193,10 +193,27 @@ bool CWDateTime::is24hFormat()
   return this->use24hFormat;
 }
 
+bool CWDateTime::parseHourAndMunite(const char *timeStr, int *hour, int *munite) {
+  String alarmClockStr = String(timeStr);
+  int colonPos = alarmClockStr.indexOf(':');
+  if(colonPos < 1 || colonPos >= alarmClockStr.length() - 1) {
+    return false;
+  }
+  *hour = alarmClockStr.substring(0, colonPos).toInt();
+  *munite = alarmClockStr.substring(colonPos + 1).toInt();
+  return true;
+}
+
+
 bool CWDateTime::setAlarm(const char *alarmClockStr) {
   if(alarmClockStr == NULL) {
     return false;
   }
+  if(this->alarmClockCount >= MAX_ALARM_CLOCK_COUNT) {
+    Serial.println("alarm count limited");
+    return false;
+  }
+  int hour, munite;
   const char *delim = ";"; // 分隔符
   char *str = strdup(alarmClockStr);
   bool isFirst = true;
@@ -209,13 +226,9 @@ bool CWDateTime::setAlarm(const char *alarmClockStr) {
     }
     Serial.printf("token is %s\n", token);
     isFirst = false;
-    String alarmClockStr = String(token);
-    int colonPos = alarmClockStr.indexOf(':');
-    if(colonPos < 1 || colonPos >= alarmClockStr.length() - 1) {
+    if(!parseHourAndMunite(token, &hour, &munite)) {
       continue;
     }
-    int hour = alarmClockStr.substring(0, colonPos).toInt();
-    int munite = alarmClockStr.substring(colonPos + 1).toInt();
     if(hour >= 0 && hour <= 23 && munite >= 0 && munite<= 59) {
       Serial.printf("set alarm clock at %02d:%02d\n", hour, munite);
       AlarmClock *alarmClock = &this->alarmClocks[this->alarmClockCount++];
@@ -251,3 +264,23 @@ void CWDateTime::resetAlarm(const int index) {
     alarmClocks[index].triggered = false;
   }
 }
+
+bool CWDateTime::deleteAlarm(const char *timeStr, const uint8_t deltaMin) {
+  int hour, munite;
+  if(!parseHourAndMunite(timeStr, &hour, &munite)) {
+    return false;
+  }
+
+  for(int i = 0; i < this->alarmClockCount; i++) {
+    int clockMunite = alarmClocks[i].hour * 60 + alarmClocks[i].minute;
+    int minCheckMunite = hour * 60 + munite - deltaMin;
+    int maxCheckMunite = hour * 60 + munite + deltaMin;
+    if(clockMunite >= minCheckMunite && clockMunite <= maxCheckMunite) {
+      Serial.printf("clear alarm at %d:%d index=%d\n", alarmClocks[i].hour, alarmClocks[i].minute, i);
+      break;
+    }
+  }
+
+  return true;
+}
+

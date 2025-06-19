@@ -10,7 +10,7 @@
 #include <ButtonController.h>
 #include <RecordController.h>
 #include <WebSocketsClient.h>
-
+#include <CommandController.h>
 
 #define ESP32_LED_BUILTIN 2
 #define WEBSOCKET_SERVER  "47.115.38.84"
@@ -55,6 +55,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       break;
     case WStype_TEXT:
       Serial.printf("[WSc] get text: %s\n", payload);
+      CommandController::getInstance()->handleCommand((const char *)payload);
       break;
     case WStype_BIN:
       Serial.printf("[WSc] get binary length: %u\n", length);
