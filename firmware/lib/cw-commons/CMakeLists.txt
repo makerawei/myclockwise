@@ -13,6 +13,7 @@ set (
      ${PROJECT_DIR}/components/ESP32Time/
      ${PROJECT_DIR}/components/ESP32-HUB75-MatrixPanel-I2S-DMA/src
      ${PROJECT_DIR}/components/OneButton/src
+     ${PROJECT_DIR}/components/arduinoWebSockets/src
 	)
 set (
 	 INCLUDE_DIRS
@@ -25,6 +26,7 @@ set (
      ${PROJECT_DIR}/components/ESP32Time/
      ${PROJECT_DIR}/components/ESP32-HUB75-MatrixPanel-I2S-DMA/src
      ${PROJECT_DIR}/components/OneButton/src
+     ${PROJECT_DIR}/components/arduinoWebSockets/src
     )
 
 

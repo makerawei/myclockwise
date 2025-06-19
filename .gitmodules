@@ -60,3 +60,6 @@
 [submodule "components/OneButton"]
 	path = components/OneButton
 	url = https://github.com/mathertel/OneButton.git
+[submodule "components/arduinoWebSockets"]
+	path = components/arduinoWebSockets
+	url = https://github.com/Links2004/arduinoWebSockets.git
