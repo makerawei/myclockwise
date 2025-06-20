@@ -14,6 +14,7 @@ typedef struct {
   int alarmDuration; // 闹铃持续时长
   uint8_t style;     // 闹铃方式
   bool triggered;    // 是否已触发通知（默认边沿触发方式，到点只通知一次）
+  bool deleted;      // 标记为删除的闹钟可被重新设置
 } AlarmClock;
 
 class CWDateTime
@@ -28,6 +29,7 @@ private:
 
   
   bool parseHourAndMunite(const char *timeStr, int *hour, int *munite);
+  int findAvailableAlarmIndex();
   
 public:
   static CWDateTime *getInstance() {
@@ -58,4 +60,7 @@ public:
   int checkAlarm();
   void resetAlarm(const int index);
   bool deleteAlarm(const char *timeStr, const uint8_t deltaMin=0);
+  void deleteAllAlarm();
+  void listAllAlarm();
+  bool handleAlarmCmd(char *cmdLine);
 };

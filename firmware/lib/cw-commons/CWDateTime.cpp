@@ -201,16 +201,28 @@ bool CWDateTime::parseHourAndMunite(const char *timeStr, int *hour, int *munite)
   }
   *hour = alarmClockStr.substring(0, colonPos).toInt();
   *munite = alarmClockStr.substring(colonPos + 1).toInt();
-  return true;
+
+  return *hour >= 0 && *hour <= 23 && *munite >= 0 && *munite<= 59;
 }
 
+// 找到一个可用来设置新闹钟的索引，如果闹钟已满，则返回-1
+int CWDateTime::findAvailableAlarmIndex() {
+  for(int i = 0; i < MAX_ALARM_CLOCK_COUNT; i++) {
+    if(i >= this->alarmClockCount) {
+      return i;
+    } else {
+      if(this->alarmClocks[i].deleted) {
+        return i;
+      }
+    }
+  }
+
+  Serial.println("alarm count limited");
+  return -1;
+}
 
 bool CWDateTime::setAlarm(const char *alarmClockStr) {
   if(alarmClockStr == NULL) {
-    return false;
-  }
-  if(this->alarmClockCount >= MAX_ALARM_CLOCK_COUNT) {
-    Serial.println("alarm count limited");
     return false;
   }
   int hour, munite;
@@ -218,7 +230,7 @@ bool CWDateTime::setAlarm(const char *alarmClockStr) {
   char *str = strdup(alarmClockStr);
   bool isFirst = true;
   this->alarmClockCount = 0;
-  while(this->alarmClockCount < MAX_ALARM_CLOCK_COUNT) {
+  while(true) {
     char *token = strtok(isFirst ? str : NULL, delim);
     if(token == NULL) {
       Serial.println("token is NULL");
@@ -226,20 +238,22 @@ bool CWDateTime::setAlarm(const char *alarmClockStr) {
     }
     Serial.printf("token is %s\n", token);
     isFirst = false;
+    int index = findAvailableAlarmIndex();
+    if(index < 0) {
+      return false;
+    }
     if(!parseHourAndMunite(token, &hour, &munite)) {
       continue;
     }
-    if(hour >= 0 && hour <= 23 && munite >= 0 && munite<= 59) {
-      Serial.printf("set alarm clock at %02d:%02d\n", hour, munite);
-      AlarmClock *alarmClock = &this->alarmClocks[this->alarmClockCount++];
-      alarmClock->hour = hour;
-      alarmClock->minute = munite;
-      alarmClock->alarmDuration = 60;
-      alarmClock->style = 0;
-      alarmClock->triggered = false;
-    } else {
-      continue;
-    }
+    Serial.printf("set alarm clock at %02d:%02d\n", hour, munite);
+    AlarmClock *alarmClock = &this->alarmClocks[index];
+    alarmClock->hour = hour;
+    alarmClock->minute = munite;
+    alarmClock->alarmDuration = 60;
+    alarmClock->style = 0;
+    alarmClock->triggered = false;
+    alarmClock->deleted = false;
+    this->alarmClockCount++;
   }
   Serial.printf("alarm clock count is %d\n", this->alarmClockCount);
   free(str);
@@ -265,6 +279,23 @@ void CWDateTime::resetAlarm(const int index) {
   }
 }
 
+void CWDateTime::deleteAllAlarm() {
+  this->alarmClockCount = 0;
+}
+
+void CWDateTime::listAllAlarm() {
+  Serial.println("List all alarms:");
+  if(this->alarmClockCount < 1) {
+    Serial.println("no any alarm");
+    return;
+  }
+
+  for(int i = 0; i < this->alarmClockCount; i++) {
+    Serial.printf("[%d]\t%02d:%02d(deleted=%d)\n", i, alarmClocks[i].hour, alarmClocks[i].minute, alarmClocks[i].deleted);
+  }
+}
+
+
 bool CWDateTime::deleteAlarm(const char *timeStr, const uint8_t deltaMin) {
   int hour, munite;
   if(!parseHourAndMunite(timeStr, &hour, &munite)) {
@@ -277,10 +308,41 @@ bool CWDateTime::deleteAlarm(const char *timeStr, const uint8_t deltaMin) {
     int maxCheckMunite = hour * 60 + munite + deltaMin;
     if(clockMunite >= minCheckMunite && clockMunite <= maxCheckMunite) {
       Serial.printf("clear alarm at %d:%d index=%d\n", alarmClocks[i].hour, alarmClocks[i].minute, i);
-      break;
+      alarmClocks[i].deleted = true;
     }
   }
 
   return true;
+}
+
+bool CWDateTime::handleAlarmCmd(char *cmdLine) {
+  Serial.printf("handle alarm cmd=%s\n", cmdLine);
+  const char *delim = "/";
+  char *cmdStr = strtok(cmdLine, delim);
+  bool ret = true;
+  if(cmdStr == NULL) {
+    ret = false;
+    return ret;
+  }
+  int cmd = String(cmdStr).toInt();    
+  char *args = strtok(NULL, delim);
+  switch(cmd) {
+    case 1: // 设置闹钟
+      ret = setAlarm(args);
+      break;
+    case 2: // 查询闹钟
+      listAllAlarm();
+      break;
+    case 3: // 删除指定闹钟
+      deleteAlarm(args);
+      break;
+    case 4: // 删除所有闹钟
+      deleteAllAlarm();
+      break;
+    default:
+      break;
+  }
+  Serial.printf("on alarm cmd:%d, args:%s\n", cmd, args ? args : "");
+  return ret;
 }
 
