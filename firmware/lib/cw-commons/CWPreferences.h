@@ -71,7 +71,10 @@ struct ClockwiseParams
         preferences.putString(PREF_CANVAS_SERVER, canvasServer);
         preferences.putString(PREF_MANUAL_POSIX, manualPosix);
         preferences.putUInt(PREF_DISPLAY_ROTATION, displayRotation);
-        preferences.putString(PREF_ALARM_CLOCK, alarmClock);
+    }
+
+    void saveAlarm(String alarmStr) {
+      preferences.putString(PREF_ALARM_CLOCK, alarmStr.c_str());
     }
 
     void load()
@@ -90,7 +93,7 @@ struct ClockwiseParams
         canvasServer = preferences.getString(PREF_CANVAS_SERVER, "raw.githubusercontent.com");
         manualPosix = preferences.getString(PREF_MANUAL_POSIX, "");
         displayRotation = preferences.getUInt(PREF_DISPLAY_ROTATION, 3);
-        alarmClock = preferences.getString(PREF_ALARM_CLOCK, "08:00");
+        alarmClock = preferences.getString(PREF_ALARM_CLOCK, "");
     }
 
 };

@@ -29,7 +29,7 @@ private:
 
   
   bool parseHourAndMunite(const char *timeStr, int *hour, int *munite);
-  int findAvailableAlarmIndex();
+  int findAvailableAlarmIndex(const int hour, const int munite, bool *reuse);
   
 public:
   static CWDateTime *getInstance() {
@@ -63,4 +63,5 @@ public:
   void deleteAllAlarm();
   void listAllAlarm();
   bool handleAlarmCmd(char *cmdLine);
+  void saveAlarm();
 };

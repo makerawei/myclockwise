@@ -1,5 +1,6 @@
 #include "CWDateTime.h"
 #include <WiFiUdp.h>
+#include <CWPreferences.h>
 #include "TzOffsetHelper.h"
 
 static const char *TAG = "CWDateTime";
@@ -206,19 +207,23 @@ bool CWDateTime::parseHourAndMunite(const char *timeStr, int *hour, int *munite)
 }
 
 // 找到一个可用来设置新闹钟的索引，如果闹钟已满，则返回-1
-int CWDateTime::findAvailableAlarmIndex() {
-  for(int i = 0; i < MAX_ALARM_CLOCK_COUNT; i++) {
+int CWDateTime::findAvailableAlarmIndex(const int hour, const int munite, bool *reuse) {
+  *reuse = false;
+  int i;
+  for(i = 0; i < MAX_ALARM_CLOCK_COUNT; i++) {
     if(i >= this->alarmClockCount) {
-      return i;
+      break;
     } else {
-      if(this->alarmClocks[i].deleted) {
-        return i;
+      if(this->alarmClocks[i].hour == hour && this->alarmClocks[i].minute == munite) {
+        *reuse = true;
+        break;
+      } else if(this->alarmClocks[i].deleted) {
+        break;
       }
     }
   }
 
-  Serial.println("alarm count limited");
-  return -1;
+  return i == MAX_ALARM_CLOCK_COUNT ? -1 : i;
 }
 
 bool CWDateTime::setAlarm(const char *alarmClockStr) {
@@ -229,31 +234,37 @@ bool CWDateTime::setAlarm(const char *alarmClockStr) {
   const char *delim = ";"; // 分隔符
   char *str = strdup(alarmClockStr);
   bool isFirst = true;
-  this->alarmClockCount = 0;
   while(true) {
     char *token = strtok(isFirst ? str : NULL, delim);
+    isFirst = false;
     if(token == NULL) {
       Serial.println("token is NULL");
       break;
     }
     Serial.printf("token is %s\n", token);
-    isFirst = false;
-    int index = findAvailableAlarmIndex();
-    if(index < 0) {
-      return false;
-    }
     if(!parseHourAndMunite(token, &hour, &munite)) {
       continue;
     }
-    Serial.printf("set alarm clock at %02d:%02d\n", hour, munite);
-    AlarmClock *alarmClock = &this->alarmClocks[index];
-    alarmClock->hour = hour;
-    alarmClock->minute = munite;
-    alarmClock->alarmDuration = 60;
-    alarmClock->style = 0;
-    alarmClock->triggered = false;
-    alarmClock->deleted = false;
-    this->alarmClockCount++;
+    bool reuse = false;
+    int index = findAvailableAlarmIndex(hour, munite, &reuse);
+    if(index < 0) {
+      return false;
+    }
+    if(reuse) {
+      Serial.printf("same alarm clock on index %d\n", index);
+      this->alarmClocks[index].triggered = false;
+      this->alarmClocks[index].deleted = false;
+    } else {
+      Serial.printf("set alarm clock at %02d:%02d\n", hour, munite);
+      AlarmClock *alarmClock = &this->alarmClocks[index];
+      alarmClock->hour = hour;
+      alarmClock->minute = munite;
+      alarmClock->alarmDuration = 60;
+      alarmClock->style = 0;
+      alarmClock->triggered = false;
+      alarmClock->deleted = false;
+      this->alarmClockCount++;
+    }
   }
   Serial.printf("alarm clock count is %d\n", this->alarmClockCount);
   free(str);
@@ -271,6 +282,21 @@ int CWDateTime::checkAlarm() {
   }
 
   return -1;
+}
+
+
+void CWDateTime::saveAlarm() {
+  String alarmStr = "";
+  char clock[7] = {0};
+  for(int i = 0; i < this->alarmClockCount; i++) {
+    if(!alarmClocks[i].deleted) {
+      snprintf(clock, sizeof(clock), "%02d:%02d;", alarmClocks[i].hour, alarmClocks[i].minute);
+      alarmStr += String(clock);
+    }
+  }
+
+  Serial.printf("save alarm string:<%s>\n", alarmStr.c_str());
+  ClockwiseParams::getInstance()->saveAlarm(alarmStr);
 }
 
 void CWDateTime::resetAlarm(const int index) {
@@ -343,6 +369,9 @@ bool CWDateTime::handleAlarmCmd(char *cmdLine) {
       break;
   }
   Serial.printf("on alarm cmd:%d, args:%s\n", cmd, args ? args : "");
+  if(ret) {
+    saveAlarm();
+  }
   return ret;
 }
 

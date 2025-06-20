@@ -1,6 +1,5 @@
 #pragma once
 #include <Arduino.h>
-#include <CWPreferences.h>
 #include <OneButton.h>
 
 #define PIN_INPUT 36
