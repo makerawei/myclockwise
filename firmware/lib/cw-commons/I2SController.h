@@ -32,11 +32,11 @@ struct I2SController {
     .intr_alloc_flags = 0,
     .dma_buf_count = 4,
     .dma_buf_len = DMA_BUF_LEN,
-    .use_apll = false/*,
+    .use_apll = false,
     .tx_desc_auto_clear = true,         // 自动清除DMA描述符
     .fixed_mclk = 0,                    // 不固定MCLK
     .mclk_multiple = I2S_MCLK_MULTIPLE_256,  // 主时钟倍频
-    .bits_per_chan = I2S_BITS_PER_CHAN_16BIT // 每个通道的位宽 */
+    .bits_per_chan = I2S_BITS_PER_CHAN_16BIT // 每个通道的位宽
   };
     
   i2s_pin_config_t pin_config_tx = {

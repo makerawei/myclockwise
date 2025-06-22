@@ -7,7 +7,7 @@
 #include <I2SController.h>
 
 #define WAV_HEAD_SIZE 44
-#define SUCCESS_SOUND_URL "http://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/success.wav"
+#define SUCCESS_SOUND_URL "https://makerawei-1251006064.cos.ap-guangzhou.myqcloud.com/clockwise/human_success.wav"
 
 #define WRITE_TO_FILE(file, buffer, size) do { \
   if(file) { \
@@ -120,6 +120,10 @@ struct AudioHelper {
     }
   }
   
+  void success() {
+    play(String(SUCCESS_SOUND_URL));
+  }
+
   void download(String url, bool play=false) {
     if (WiFi.status() != WL_CONNECTED) {
       return;

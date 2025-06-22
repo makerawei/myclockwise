@@ -10,19 +10,21 @@ struct CommandController {
     return &base;
   }
   
-  void handleCommand(const char *cmd) {
+  bool handleCommand(const char *cmd) {
     char *str = strdup(cmd);
     char *action = strtok(str, delim);
+    bool ret = false;
     if(action == NULL) {
-      return;
+      return ret;
     }
     if(strcmp(action, "alarm") == 0) {
-      CWDateTime::getInstance()->handleAlarmCmd(strtok(NULL, ""));
+      ret = CWDateTime::getInstance()->handleAlarmCmd(strtok(NULL, ""));
     } else {
       Serial.printf("unknown action:%s\n", action);
     }
 
     free(str);
+    return ret;
   }
 };
 
