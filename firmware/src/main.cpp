@@ -11,6 +11,7 @@
 #include <RecordController.h>
 #include <WebSocketsClient.h>
 #include <CommandController.h>
+#include <main.h>
 
 #define ESP32_LED_BUILTIN 2
 #define WEBSOCKET_SERVER  "47.115.38.84"
@@ -21,6 +22,7 @@
 Clockface *clockface;
 WiFiController wifi;
 WebSocketsClient webSocket;
+ClockState clockState = CLOCK;
 
 /*
 volatile bool buttonPressed = false;
@@ -33,11 +35,13 @@ void onButtonClicked() {
 
 void onButtonLongPressStart() {
   Serial.println("button long press start");
+  clockState = RECORDING;
   RecordController::getInstance()->startRecord();
 }
 
 void onButtonLongPressStop() {
   Serial.println("button long press stop");
+  clockState = WAITING;
   RecordController::getInstance()->stopRecord();
 }
 
@@ -61,6 +65,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       } else {
         Serial.println("[WSc] command handling failed");
       }
+      clockState = CLOCK;
       break;
     case WStype_BIN:
       Serial.printf("[WSc] get binary length: %u\n", length);
@@ -143,7 +148,7 @@ void loop() {
   ButtonController::getInstance()->loop();
   wifi.handleImprovWiFi();
   if(wifi.connectionSucessfulOnce) {
-    clockface->loop();
+    clockface->loop(clockState);
   }
   //onButtonEvent();
 }

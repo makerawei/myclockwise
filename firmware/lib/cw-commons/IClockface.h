@@ -3,6 +3,7 @@
 #include <Adafruit_GFX.h>
 #include "AudioHelper.h"
 #include "CWDateTime.h"
+#include "main.h"
 
 #define MIN_BRIGHT_DISPLAY_ON 4
 #define MIN_BRIGHT_DISPLAY_OFF 0
@@ -22,6 +23,7 @@ protected:
     static AlarmTickCallbackType _tickFunc;
     static SemaphoreHandle_t _semaphore;
     static String _alarmSoundUrl;
+    ClockState _clockState = CLOCK;
     
 public:
     IClockface(Adafruit_GFX* display);
@@ -41,7 +43,7 @@ public:
     virtual void update() = 0;
 
     void init();
-    void loop();
+    void loop(ClockState clockState);
     
     void updateTime();
     bool alarmStarts();

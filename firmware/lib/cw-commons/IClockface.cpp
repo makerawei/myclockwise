@@ -77,12 +77,28 @@ void IClockface::init() {
     setup();
   }
 }
-void IClockface::loop() {
+void IClockface::loop(ClockState clockState) {
   automaticBrightControl();
-  if(_nightMode) {
-    updateNightMode();
-  } else {
-    update();
+  if(clockState != _clockState) {
+    Locator::getDisplay()->fillRect(0, 0, 64, 64, 0); // 清屏
+  }
+  _clockState = clockState;
+  switch(clockState) {
+    case CLOCK:
+      if(_nightMode) {
+        updateNightMode();
+      } else {
+        update();
+      }
+      break;
+    case RECORDING:
+      break;
+    case WAITING:
+      break;
+    case TOAST:
+      break;
+    default:
+      break;
   }
 }
 
