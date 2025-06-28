@@ -14,9 +14,9 @@
 #include <main.h>
 
 #define ESP32_LED_BUILTIN 2
-#define WEBSOCKET_SERVER  "47.115.38.84"
-#define WEBSOCKET_PORT    8000
-#define WEBSOCKET_AUDIO_PATH "/audio"
+#define WEBSOCKET_SERVER  "myclock.asia"
+#define WEBSOCKET_PORT    8080
+#define WEBSOCKET_AUDIO_PATH "/ws/audio"
 
 
 Clockface *clockface;
