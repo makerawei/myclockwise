@@ -9,20 +9,26 @@
 #include <DisplayController.h>
 #include <ButtonController.h>
 #include <RecordController.h>
+#if ENABLE_WEBSOCKET
 #include <WebSocketsClient.h>
+#endif
 #include <CommandController.h>
 #include <main.h>
 
 #define ESP32_LED_BUILTIN 2
+#if ENABLE_WEBSOCKET
 #define WEBSOCKET_SERVER  "myclock.asia"
 #define WEBSOCKET_PORT    8080
 #define WEBSOCKET_AUDIO_PATH "/ws/audio"
+#endif
 
 
 Clockface *clockface;
 WiFiController wifi;
-WebSocketsClient webSocket;
 ClockState clockState = CLOCK;
+#if ENABLE_WEBSOCKET
+WebSocketsClient webSocket;
+#endif
 
 /*
 volatile bool buttonPressed = false;
@@ -35,14 +41,18 @@ void onButtonClicked() {
 
 void onButtonLongPressStart() {
   Serial.println("button long press start");
+#if ENABLE_WEBSOCKET
   clockState = RECORDING;
   RecordController::getInstance()->startRecord();
+#endif
 }
 
 void onButtonLongPressStop() {
   Serial.println("button long press stop");
+#if ENABLE_WEBSOCKET
   clockState = WAITING;
   RecordController::getInstance()->stopRecord();
+#endif
 }
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
@@ -108,9 +118,11 @@ void setup() {
         ClockwiseParams::getInstance()->alarmClock.c_str());
     clockface->init();
     if(wifi.isConnected()) {
+      #if ENABLE_WEBSOCKET
       webSocket.begin(WEBSOCKET_SERVER, WEBSOCKET_PORT, WEBSOCKET_AUDIO_PATH);
       webSocket.onEvent(webSocketEvent);
       webSocket.setReconnectInterval(3000);
+      #endif
       ClockwiseWebServer::getInstance()->handleHttpRequestInTask();
     }
   }
@@ -144,7 +156,9 @@ void loop() {
     ClockwiseWebServer::getInstance()->handleHttpRequest();
   }
   */
+  #if ENABLE_WEBSOCKET
   webSocket.loop();
+  #endif
   ButtonController::getInstance()->loop();
   wifi.handleImprovWiFi();
   if(wifi.connectionSucessfulOnce) {
