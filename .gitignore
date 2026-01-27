@@ -14,3 +14,6 @@ dependencies.lock
 
 clockwise.si4project/
 .DS_Store
+
+myclockwise_merge_esp32.bin
+
