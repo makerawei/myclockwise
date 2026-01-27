@@ -1,0 +1,12 @@
+{
+  "name": "MyClockWise for ESP32",
+  "version": "1.0",
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        { "path": "firmware/myclockwise_merge_esp32.bin", "offset": 0 }
+      ]
+    }
+  ]
+}

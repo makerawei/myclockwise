@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link href="https://unpkg.com/nes.css/css/nes.css" rel="stylesheet" />
+    <script type="module" src="https://unpkg.com/esp-web-tools@8.0.1/dist/web/install-button.js?module"></script>
+    <title>myclockwise</title>
+    <style>
+      header {
+        margin-top: 20px;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(to bottom, #0d144a, #f1f1f1);
+        color: white;
+      }
+      .footer {
+        background-color: #f1f1f1;
+        text-align: center;
+        padding: 10px 0;
+        position: relative;
+        bottom: 0;
+        width: 100%;
+      }
+      .footer p {
+        margin: 0;
+        color: #333;
+      }
+    </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul class="menu">
+        <li><a href="https://m.tb.cn/h.7pALrx7?tk=X4JkUhLfuig" target="_blank">Buy it!</a></li>
+      </ul>
+    </nav>
+  </header>
+  <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+    <div class="nes-container is-rounded">
+      <div style="text-align: center; padding: 40px;">
+        <esp-web-install-button manifest="./manifest.json">
+          <button slot="activate" class="nes-btn is-warning">Install firmware</button>
+          <span slot="unsupported">Ah snap, your browser doesn't work!</span>
+          <span slot="not-allowed">Ah snap, you are not allowed to use this on HTTP!</span>
+        </esp-web-install-button>
+      </div>
+    </div>
+  </div>
+  <footer class="footer">
+      <p>&copy; 创客阿玮 2026 - <a href="https://space.bilibili.com/431485248" target="_blank">Find me in bilibili</a>. All rights reserved.</p>
+  </footer>
+</body>
+</html>
